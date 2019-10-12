@@ -10,7 +10,7 @@ import Greeter._
 import Printer._
 
 //#test-classes
-class AkkaQuickstartSpec(_system: ActorSystem)
+class GymHunterAppSpec(_system: ActorSystem)
   extends TestKit(_system)
   with Matchers
   with WordSpecLike
