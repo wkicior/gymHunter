@@ -2,19 +2,26 @@
 package com.github.wkicior.gymhunter.app
 
 import akka.actor.{ActorRef, ActorSystem}
-import com.github.wkicior.gymhunter.app.domain.TrainingFetcher
+import akka.pattern.ask
+import akka.util.Timeout
 import com.github.wkicior.gymhunter.app.domain.TrainingFetcher.GetTraining
-import com.github.wkicior.gymhunter.app.http.HttpGetter
-import com.github.wkicior.gymhunter.app.http.HttpGetter.Get
 
+import scala.language.postfixOps
+import com.github.wkicior.gymhunter.app.domain.{TrainingFetcher, TrainingResponse}
+
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.io.StdIn
 
 object AkkaQuickstart extends App {
   val system: ActorSystem = ActorSystem("GymHunter")
-  val httpGetter: ActorRef = system.actorOf(HttpGetter.props, "httpGetter")
-  val trainingFetcher: ActorRef = system.actorOf(TrainingFetcher.props(httpGetter), "trainingFetcher")
+  val trainingFetcher: ActorRef = system.actorOf(TrainingFetcher.props, "trainingFetcher")
 
-  trainingFetcher ! GetTraining(550633)
+  implicit val timeout = Timeout(5 seconds)
+
+  val future2: Future[TrainingResponse] = ask(trainingFetcher, GetTraining(550633)).mapTo[TrainingResponse]
+  val result2 = Await.result(future2, 5 second)
+  println("Got response, body: " + result2)
   try StdIn.readLine()
 
 

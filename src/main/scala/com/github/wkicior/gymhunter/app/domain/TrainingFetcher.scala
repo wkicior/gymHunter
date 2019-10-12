@@ -1,46 +1,47 @@
 package com.github.wkicior.gymhunter.app.domain
-import akka.pattern.ask
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import com.github.wkicior.gymhunter.app.http.{HttpGetter, Training, TrainingResponse}
-import akka.actor._
-import akka.pattern.ask
-import akka.util.Timeout
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration._
+
+import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.stream.ActorMaterializer
+import spray.json.DefaultJsonProtocol._
+
+import scala.concurrent.Future
 import scala.language.postfixOps
-import akka.util.Timeout
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import com.github.wkicior.gymhunter.app.http.HttpGetter.{Get, GetResponse}
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
-
+case class TrainingResponse(training: Training)
 
 object TrainingFetcher {
-  def props(httpGetter: ActorRef): Props = Props(new TrainingFetcher(httpGetter))
+  def props: Props = Props[TrainingFetcher]
   final case class GetTraining(id: Long)
 }
 
-class TrainingFetcher(httpGetter: ActorRef) extends Actor with ActorLogging {
+class TrainingFetcher extends Actor with ActorLogging {
   import TrainingFetcher._
-  implicit val timeout = Timeout(5 seconds)
+  import akka.pattern.pipe
+  import context.dispatcher
 
-  override def postStop(): Unit = log.info("TrainingFetcher stopped")
+  implicit val system: ActorSystem = ActorSystem("GymHunter")
+  implicit val mat = ActorMaterializer()(context)
+  implicit val trainingFormat = jsonFormat4(Training)
+  implicit val trainingResponseFormat = jsonFormat1(TrainingResponse)
 
+  val http = Http(context.system)
 
   def receive = {
     case GetTraining(id) =>
-      log.info("I'm about to get training" + id)
-     // val future = httpGetter ? Get("https://api.gymsteer.com/api/clubs/8/trainings/550633")
-      //val result = Await.result(future, timeout.duration).asInstanceOf[GetResponse]
-
-      val future2: Future[TrainingResponse] = ask(httpGetter, Get("https://api.gymsteer.com/api/clubs/8/trainings/550633")).mapTo[TrainingResponse]
-      val result2 = Await.result(future2, 5 second)
-      log.info("Got response, body: " + result2)
-
-      //httpGetter ! Get("https://api.gymsteer.com/api/clubs/8/trainings/550633")
+      val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = "https://api.gymsteer.com/api/clubs/8/trainings/" + id))
+      responseFuture
+        .flatMap {
+          case response@HttpResponse(StatusCodes.OK, _, _, _) =>
+            Unmarshal(response).to[TrainingResponse]
+          case _ => sys.error("something wrong")
+        }
+        .pipeTo(sender())
     case _ =>
-      log.info("unrecognized message")
-
+      log.error("unrecognized message")
   }
 }
