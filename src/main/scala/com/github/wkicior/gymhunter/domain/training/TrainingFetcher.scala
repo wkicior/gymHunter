@@ -1,5 +1,4 @@
-package com.github.wkicior.gymhunter.app.domain
-
+package com.github.wkicior.gymhunter.domain.training
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.http.scaladsl.Http
@@ -40,6 +39,7 @@ class TrainingFetcher extends Actor with ActorLogging {
             Unmarshal(response).to[TrainingResponse]
           case _ => sys.error("something wrong")
         }
+        .map(tr => tr.training)
         .pipeTo(sender())
     case _ =>
       log.error("unrecognized message")
