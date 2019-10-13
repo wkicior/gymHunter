@@ -1,6 +1,6 @@
 package com.github.wkicior.gymhunter.domain.training
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.github.wkicior.gymhunter.domain.training.TrainingFetcher.GetTraining
@@ -19,10 +19,8 @@ object TrainingHunter {
 class TrainingHunter extends Actor with ActorLogging {
   import TrainingHunter._
   import TrainingTracker._
-  implicit val system: ActorSystem = ActorSystem("GymHunter")
-  val trainingFetcher: ActorRef = system.actorOf(TrainingFetcher.props, "trainingFetcher")
-  val trainingTracker: ActorRef = system.actorOf(TrainingTracker.props, "trainingTracker")
-
+  val trainingFetcher: ActorRef = context.actorOf(TrainingFetcher.props, "trainingFetcher")
+  val trainingTracker: ActorRef = context.actorOf(TrainingTracker.props, "trainingTracker")
 
   def receive = {
     case Hunt() =>
