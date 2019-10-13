@@ -21,7 +21,7 @@ class TrainingTracker extends Actor with ActorLogging {
 
   def receive = {
     case GetTrackedTrainings() =>
-      val trainingids = List(550633L, 699157, 699176, 699158, 550634, 550635)
+      val trainingids = List(550633L, 550656, 699157, 699176, 699158, 550634, 550635)
       //TODO: use source? val trainingIdsSource: Source[Long, NotUsed] = Source(List(550633, 550634))
       sender() ! TrackedTrainingIds(trainingids)
   }
