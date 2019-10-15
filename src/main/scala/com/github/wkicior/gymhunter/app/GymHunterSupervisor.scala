@@ -17,7 +17,7 @@ class GymHunterSupervisor extends Actor with ActorLogging {
 
   def receive = {
     case RunGymHunting() =>
-      val trainingHunter: ActorRef = context.actorOf(TrainingHunter.props, "trainingFetcher")
+      val trainingHunter: ActorRef = context.actorOf(TrainingHunter.props, "trainingHunter")
       trainingHunter ! Hunt()
   }
 }
