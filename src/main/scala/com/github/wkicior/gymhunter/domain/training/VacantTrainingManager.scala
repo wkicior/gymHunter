@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging, Props}
 
 object FreeTrainingManager {
   def props: Props = Props[FreeTrainingManager]
-  final case class ProcessFreeTraining(training: Training)
+  final case class ProcessVacantTraining(training: Training)
 }
 
 class FreeTrainingManager extends Actor with ActorLogging {
@@ -12,7 +12,7 @@ class FreeTrainingManager extends Actor with ActorLogging {
 
 
   def receive = {
-    case ProcessFreeTraining(training: Training) =>
+    case ProcessVacantTraining(training: Training) =>
       println(s"slots available on ${training}")
   }
 }
