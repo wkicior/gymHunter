@@ -9,20 +9,23 @@ import com.github.wkicior.gymhunter.domain.training.TrainingFetcher.GetTraining
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import akka.actor.{ Actor, ActorLogging, Props }
+
 import scala.language.postfixOps
 
 
 object TrainingHunter {
-  def props: Props = Props[TrainingHunter]
+  def props(): Props = Props(new TrainingHunter(TrainingTracker.props))
+  def props(trainingHunterProps: Props): Props = Props(new TrainingHunter(trainingHunterProps))
   final case class Hunt()
 }
 
-class TrainingHunter extends Actor with ActorLogging {
+class TrainingHunter(trainingTrackerProps: Props) extends Actor with ActorLogging {
   import TrainingHunter._
   import TrainingTracker._
-  implicit val ec = ExecutionContext.global;
+  implicit val ec = ExecutionContext.global
 
-  val trainingTracker: ActorRef = context.actorOf(TrainingTracker.props, "trainingTracker")
+  val trainingTracker: ActorRef = context.actorOf(trainingTrackerProps, "trainingTracker")
   val trainingFetcher: ActorRef = context.actorOf(RoundRobinPool(8).props(TrainingFetcher.props), "trainingFetcher")
   val vacantTrainingManager: ActorRef = context.actorOf(RoundRobinPool(5).props(VacantTrainingManager.props), "vacantTrainingManager")
 
@@ -38,6 +41,8 @@ class TrainingHunter extends Actor with ActorLogging {
             .filter(training => training.canBeBooked())
             .foreach(training => vacantTrainingManager ! ProcessVacantTraining(training))
         })
+    case _ =>
+      log.error("unrecognized message")
   }
 
   private def getTrackedTrainings(): Future[TrackedTrainingIds] = {

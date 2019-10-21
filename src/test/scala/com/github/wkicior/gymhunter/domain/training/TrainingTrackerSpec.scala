@@ -20,8 +20,8 @@ class TrainingTrackerSpec(_system: ActorSystem) extends TestKit(_system) with Ma
   "A TrainingTracker Actor" should {
     "return some tracked training ids" in {
       val probe = TestProbe()
-      val deviceActor = system.actorOf(TrainingTracker.props)
-      deviceActor.tell(TrainingTracker.GetTrackedTrainings(), probe.ref)
+      val trainingTracker = system.actorOf(TrainingTracker.props)
+      trainingTracker.tell(TrainingTracker.GetTrackedTrainings(), probe.ref)
       val response = probe.expectMsgType[TrainingTracker.TrackedTrainingIds]
       response.ids.size should be > 0
     }
