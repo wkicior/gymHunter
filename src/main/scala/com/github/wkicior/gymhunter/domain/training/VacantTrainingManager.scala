@@ -2,13 +2,13 @@ package com.github.wkicior.gymhunter.domain.training
 
 import akka.actor.{Actor, ActorLogging, Props}
 
-object FreeTrainingManager {
-  def props: Props = Props[FreeTrainingManager]
+object VacantTrainingManager {
+  def props: Props = Props[VacantTrainingManager]
   final case class ProcessVacantTraining(training: Training)
 }
 
-class FreeTrainingManager extends Actor with ActorLogging {
-  import FreeTrainingManager._
+class VacantTrainingManager extends Actor with ActorLogging {
+  import VacantTrainingManager._
 
 
   def receive = {
