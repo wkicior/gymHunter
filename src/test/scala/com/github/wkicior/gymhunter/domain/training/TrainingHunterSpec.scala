@@ -15,29 +15,93 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
   override def afterAll: Unit = {
     shutdown(system)
   }
-
+  val trainingTrackerProbe = TestProbe()
   val trainingFetcherProbe = TestProbe()
+  val vacantTrainingManagerProbe = TestProbe()
+
   val trainingFetcherProps = Props(new Actor {
     def receive = {
       case x => {
-        println("got " + x)
         trainingFetcherProbe.ref forward x
       }
     }
   })
+  val trainingTrackerProps = Props(new Actor {
+    def receive = {
+      case x => {
+        trainingTrackerProbe.ref forward x
+      }
+    }
+  })
+  val vacantTrainingManagerProps = Props(new Actor {
+    def receive = {
+      case x => {
+        vacantTrainingManagerProbe.ref forward x
+      }
+    }
+  })
 
-  val trainingHunter = system.actorOf(TrainingHunter.props(trainingFetcherProps))
+  val trainingHunter = system.actorOf(TrainingHunter.props(trainingTrackerProps, trainingFetcherProps, vacantTrainingManagerProps))
 
   "A TrainingHunter Actor" should {
     """ask trainingFetcher for all tracked training ids
       |don't ask for training details on empty trainings
       |don't notify vacant training manager on empty trainings
     """.stripMargin in {
+      //given
       val probe = TestProbe()
+
+      //when
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
-      trainingFetcherProbe.expectMsgType[TrainingTracker.GetTrackedTrainings]
-      trainingFetcherProbe.reply(TrainingTracker.TrackedTrainingIds(List()))
+      //then
+      trainingTrackerProbe.expectMsgType[TrainingTracker.GetTrackedTrainings]
+      trainingTrackerProbe.reply(TrainingTracker.TrackedTrainingIds(List()))
+
+      trainingFetcherProbe.expectNoMessage()
+      vacantTrainingManagerProbe.expectNoMessage()
+    }
+
+    """ask trainingFetcher for all tracked training ids
+      |ask for training details on given Id
+      |don't notify vacantTrainingManager on non vacant training
+    """.stripMargin in {
+      //given
+      val probe = TestProbe()
+      val sampleNonVacantTraining = Training(42L, 0, "", "")
+
+      //when
+      trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
+
+      //then
+      trainingTrackerProbe.expectMsgType[TrainingTracker.GetTrackedTrainings]
+      trainingTrackerProbe.reply(TrainingTracker.TrackedTrainingIds(List(42L)))
+
+      trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
+      trainingFetcherProbe.reply(sampleNonVacantTraining)
+
+      vacantTrainingManagerProbe.expectNoMessage()
+    }
+
+    """ask trainingFetcher for all tracked training ids
+      |ask for training details on given Id
+      |notify vacantTrainingManager on vacant training
+    """.stripMargin in {
+      //given
+      val probe = TestProbe()
+      val sampleVacantTraining = Training(42L, 1, "", "")
+
+      //when
+      trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
+
+      //then
+      trainingTrackerProbe.expectMsgType[TrainingTracker.GetTrackedTrainings]
+      trainingTrackerProbe.reply(TrainingTracker.TrackedTrainingIds(List(42L)))
+
+      trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
+      trainingFetcherProbe.reply(sampleVacantTraining)
+
+      vacantTrainingManagerProbe.expectMsg(VacantTrainingManager.ProcessVacantTraining(sampleVacantTraining))
     }
   }
 }

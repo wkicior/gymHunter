@@ -15,19 +15,21 @@ import scala.language.postfixOps
 
 
 object TrainingHunter {
-  def props(): Props = Props(new TrainingHunter(TrainingTracker.props))
-  def props(trainingHunterProps: Props): Props = Props(new TrainingHunter(trainingHunterProps))
+  def props(): Props = Props(new TrainingHunter(TrainingTracker.props, TrainingFetcher.props, VacantTrainingManager.props))
+  def props(trainingHunterProps: Props, trainingFetcherProps: Props, vacantTrainingManagerProps: Props): Props = Props(
+    new TrainingHunter(trainingHunterProps, trainingFetcherProps, vacantTrainingManagerProps)
+  )
   final case class Hunt()
 }
 
-class TrainingHunter(trainingTrackerProps: Props) extends Actor with ActorLogging {
+class TrainingHunter(trainingTrackerProps: Props, trainingFetcherProps: Props, vacantTrainingManagerProps: Props) extends Actor with ActorLogging {
   import TrainingHunter._
   import TrainingTracker._
   implicit val ec = ExecutionContext.global
 
   val trainingTracker: ActorRef = context.actorOf(trainingTrackerProps, "trainingTracker")
-  val trainingFetcher: ActorRef = context.actorOf(RoundRobinPool(8).props(TrainingFetcher.props), "trainingFetcher")
-  val vacantTrainingManager: ActorRef = context.actorOf(RoundRobinPool(5).props(VacantTrainingManager.props), "vacantTrainingManager")
+  val trainingFetcher: ActorRef = context.actorOf(RoundRobinPool(8).props(trainingFetcherProps), "trainingFetcher")
+  val vacantTrainingManager: ActorRef = context.actorOf(RoundRobinPool(5).props(vacantTrainingManagerProps), "vacantTrainingManager")
 
   def receive = {
     case Hunt() =>
