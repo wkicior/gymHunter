@@ -28,7 +28,8 @@ class TrainingFetcher extends Actor with ActorLogging {
   implicit val trainingFormat = jsonFormat4(Training)
   implicit val trainingResponseFormat = jsonFormat1(TrainingResponse)
 
-  val http = Http(context.system)
+
+  //val http = Http(context.system)
 
   def receive = {
     case GetTraining(id) =>
@@ -36,6 +37,7 @@ class TrainingFetcher extends Actor with ActorLogging {
       responseFuture
         .flatMap {
           case response@HttpResponse(StatusCodes.OK, _, _, _) =>
+            val x = response.discardEntityBytes()
             Unmarshal(response).to[TrainingResponse]
           case _ => sys.error("something wrong")
         }
