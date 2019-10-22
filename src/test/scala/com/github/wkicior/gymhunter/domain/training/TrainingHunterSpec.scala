@@ -1,5 +1,7 @@
 package com.github.wkicior.gymhunter.domain.training
 
+import java.time.OffsetDateTime
+
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -55,8 +57,8 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingTrackerProbe.expectMsgType[TrainingTracker.GetTrackedTrainings]
-      trainingTrackerProbe.reply(TrainingTracker.TrackedTrainingIds(List()))
+      trainingTrackerProbe.expectMsgType[TrainingRepository.GetTrackedTrainings]
+      trainingTrackerProbe.reply(TrainingRepository.TrackedTrainingIds(Set()))
 
       trainingFetcherProbe.expectNoMessage()
       vacantTrainingManagerProbe.expectNoMessage()
@@ -68,14 +70,14 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
     """.stripMargin in {
       //given
       val probe = TestProbe()
-      val sampleNonVacantTraining = Training(42L, 0, "", "")
+      val sampleNonVacantTraining = Training(42L, 0, OffsetDateTime.now(), OffsetDateTime.now())
 
       //when
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingTrackerProbe.expectMsgType[TrainingTracker.GetTrackedTrainings]
-      trainingTrackerProbe.reply(TrainingTracker.TrackedTrainingIds(List(42L)))
+      trainingTrackerProbe.expectMsgType[TrainingRepository.GetTrackedTrainings]
+      trainingTrackerProbe.reply(TrainingRepository.TrackedTrainingIds(Set(42L)))
 
       trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
       trainingFetcherProbe.reply(sampleNonVacantTraining)
@@ -89,14 +91,14 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
     """.stripMargin in {
       //given
       val probe = TestProbe()
-      val sampleVacantTraining = Training(42L, 1, "", "")
+      val sampleVacantTraining = Training(42L, 1, OffsetDateTime.now(), OffsetDateTime.now())
 
       //when
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingTrackerProbe.expectMsgType[TrainingTracker.GetTrackedTrainings]
-      trainingTrackerProbe.reply(TrainingTracker.TrackedTrainingIds(List(42L)))
+      trainingTrackerProbe.expectMsgType[TrainingRepository.GetTrackedTrainings]
+      trainingTrackerProbe.reply(TrainingRepository.TrackedTrainingIds(Set(42L)))
 
       trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
       trainingFetcherProbe.reply(sampleVacantTraining)

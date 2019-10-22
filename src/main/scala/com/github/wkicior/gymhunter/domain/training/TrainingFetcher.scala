@@ -1,5 +1,7 @@
 package com.github.wkicior.gymhunter.domain.training
 
+import java.time.LocalDateTime
+
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
@@ -21,12 +23,13 @@ object TrainingFetcher {
 class TrainingFetcher extends Actor with ActorLogging {
   import TrainingFetcher._
   import akka.pattern.pipe
+  import com.github.wkicior.gymhunter.app.JsonProtocol._
   import context.dispatcher
 
   implicit val system: ActorSystem = ActorSystem("GymHunter")
   implicit val mat = ActorMaterializer()(context)
-  implicit val trainingFormat = jsonFormat4(Training)
-  implicit val trainingResponseFormat = jsonFormat1(TrainingResponse)
+
+
 
 
   //val http = Http(context.system)

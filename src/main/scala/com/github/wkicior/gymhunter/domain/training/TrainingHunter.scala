@@ -15,7 +15,7 @@ import scala.language.postfixOps
 
 
 object TrainingHunter {
-  def props(): Props = Props(new TrainingHunter(TrainingTracker.props, TrainingFetcher.props, VacantTrainingManager.props))
+  def props(): Props = Props(new TrainingHunter(TrainingRepository.props, TrainingFetcher.props, VacantTrainingManager.props))
   def props(trainingHunterProps: Props, trainingFetcherProps: Props, vacantTrainingManagerProps: Props): Props = Props(
     new TrainingHunter(trainingHunterProps, trainingFetcherProps, vacantTrainingManagerProps)
   )
@@ -24,7 +24,7 @@ object TrainingHunter {
 
 class TrainingHunter(trainingTrackerProps: Props, trainingFetcherProps: Props, vacantTrainingManagerProps: Props) extends Actor with ActorLogging {
   import TrainingHunter._
-  import TrainingTracker._
+  import TrainingRepository._
   implicit val ec = ExecutionContext.global
 
   val trainingTracker: ActorRef = context.actorOf(trainingTrackerProps, "trainingTracker")
@@ -41,7 +41,7 @@ class TrainingHunter(trainingTrackerProps: Props, trainingFetcherProps: Props, v
         .foreach(trainings => {
           trainings
             .filter(training => training.canBeBooked())
-            .foreach(training => vacantTrainingManager ! ProcessVacantTraining(training))
+            .foreach(training =>  vacantTrainingManager ! ProcessVacantTraining(training))
         })
     case _ =>
       log.error("unrecognized message")

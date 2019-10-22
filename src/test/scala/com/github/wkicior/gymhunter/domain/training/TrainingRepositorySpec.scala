@@ -8,7 +8,7 @@ import scala.language.postfixOps
 
 
 
-class TrainingTrackerSpec(_system: ActorSystem) extends TestKit(_system) with Matchers with WordSpecLike with BeforeAndAfterAll {
+class TrainingRepositorySpec(_system: ActorSystem) extends TestKit(_system) with Matchers with WordSpecLike with BeforeAndAfterAll {
 
 
   def this() = this(ActorSystem("GymHunter"))
@@ -20,9 +20,9 @@ class TrainingTrackerSpec(_system: ActorSystem) extends TestKit(_system) with Ma
   "A TrainingTracker Actor" should {
     "return some tracked training ids" in {
       val probe = TestProbe()
-      val trainingTracker = system.actorOf(TrainingTracker.props)
-      trainingTracker.tell(TrainingTracker.GetTrackedTrainings(), probe.ref)
-      val response = probe.expectMsgType[TrainingTracker.TrackedTrainingIds]
+      val trainingTracker = system.actorOf(TrainingRepository.props)
+      trainingTracker.tell(TrainingRepository.GetTrackedTrainings(), probe.ref)
+      val response = probe.expectMsgType[TrainingRepository.TrackedTrainingIds]
       response.ids.size should be > 0
     }
   }
