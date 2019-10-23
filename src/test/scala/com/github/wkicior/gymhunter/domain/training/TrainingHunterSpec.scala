@@ -70,7 +70,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
     """.stripMargin in {
       //given
       val probe = TestProbe()
-      val sampleNonVacantTraining = Training(42L, 0, OffsetDateTime.now(), OffsetDateTime.now())
+      val sampleNonVacantTraining = Training(42L, 0, OffsetDateTime.now(), OffsetDateTime.now().plusDays(2))
 
       //when
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
@@ -91,7 +91,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
     """.stripMargin in {
       //given
       val probe = TestProbe()
-      val sampleVacantTraining = Training(42L, 1, OffsetDateTime.now(), OffsetDateTime.now())
+      val sampleVacantTraining = Training(42L, 1, OffsetDateTime.now(), OffsetDateTime.now().plusDays(2))
 
       //when
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
