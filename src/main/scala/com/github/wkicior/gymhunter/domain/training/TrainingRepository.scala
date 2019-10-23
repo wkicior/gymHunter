@@ -11,7 +11,6 @@ object TrainingRepository {
   final case class GetTrackedTrainings()
   final case class TrackedTrainingIds(ids: Set[Long])
   final case class AddTrackedTraining(id: Long)
-
 }
 
 class TrainingRepository extends Actor with ActorLogging {
