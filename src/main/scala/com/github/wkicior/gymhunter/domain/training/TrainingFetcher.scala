@@ -29,11 +29,6 @@ class TrainingFetcher extends Actor with ActorLogging {
   implicit val system: ActorSystem = ActorSystem("GymHunter")
   implicit val mat = ActorMaterializer()(context)
 
-
-
-
-  //val http = Http(context.system)
-
   def receive = {
     case GetTraining(id) =>
       val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = "https://api.gymsteer.com/api/clubs/8/trainings/" + id))

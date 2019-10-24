@@ -3,15 +3,12 @@ package com.github.wkicior.gymhunter.app
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import com.github.wkicior.gymhunter.app.GymHunterSupervisor.RunGymHunting
+import com.github.wkicior.gymhunter.web.{RestApi}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 
 import scala.concurrent.Await
-import akka.http.scaladsl.server.Directives._
-import com.github.wkicior.gymhunter.web.TrainingToHuntController._
-
 import scala.concurrent.duration.Duration
 import scala.language.postfixOps
 
@@ -25,10 +22,8 @@ object GymHunterApp extends App {
   val supervisor: ActorRef = system.actorOf(GymHunterSupervisor.props, "GymHunterSupervisor")
   scheduler.schedule("GymHunterSupervisorScheduler", supervisor, RunGymHunting())
 
-  lazy val apiRoutes: Route = pathPrefix("api") {
-    trainingToHuntRoutes
-  }
-  Http().bindAndHandle(apiRoutes, "localhost", 8080)
+  val api = new RestApi(system).routes
+  Http().bindAndHandle(api, "localhost", 8080)
   log.info("Starting the HTTP server at 8080")
   Await.result(system.whenTerminated, Duration.Inf)
 }
