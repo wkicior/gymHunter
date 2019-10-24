@@ -17,7 +17,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
   override def afterAll: Unit = {
     shutdown(system)
   }
-  val trainingTrackerProbe = TestProbe()
+  val trainingToHuntFetcherProbe = TestProbe()
   val trainingFetcherProbe = TestProbe()
   val vacantTrainingManagerProbe = TestProbe()
 
@@ -28,10 +28,10 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       }
     }
   })
-  val trainingTrackerProps = Props(new Actor {
+  val trainingToHuntFetcherProps = Props(new Actor {
     def receive = {
       case x => {
-        trainingTrackerProbe.ref forward x
+        trainingToHuntFetcherProbe.ref forward x
       }
     }
   })
@@ -43,7 +43,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
     }
   })
 
-  val trainingHunter = system.actorOf(TrainingHunter.props(trainingTrackerProps, trainingFetcherProps, vacantTrainingManagerProps))
+  val trainingHunter = system.actorOf(TrainingHunter.props(trainingToHuntFetcherProps, trainingFetcherProps, vacantTrainingManagerProps))
 
   "A TrainingHunter Actor" should {
     """ask trainingFetcher for all tracked training ids
@@ -57,8 +57,8 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingTrackerProbe.expectMsgType[TrainingRepository.GetTrackedTrainings]
-      trainingTrackerProbe.reply(TrainingRepository.TrackedTrainingIds(Set()))
+      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHunt]
+      trainingToHuntFetcherProbe.reply(TrainingToHuntRepository.TrackedTrainingIds(Set()))
 
       trainingFetcherProbe.expectNoMessage()
       vacantTrainingManagerProbe.expectNoMessage()
@@ -76,8 +76,8 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingTrackerProbe.expectMsgType[TrainingRepository.GetTrackedTrainings]
-      trainingTrackerProbe.reply(TrainingRepository.TrackedTrainingIds(Set(42L)))
+      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHunt]
+      trainingToHuntFetcherProbe.reply(TrainingToHuntRepository.TrackedTrainingIds(Set(42L)))
 
       trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
       trainingFetcherProbe.reply(sampleNonVacantTraining)
@@ -97,8 +97,8 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingTrackerProbe.expectMsgType[TrainingRepository.GetTrackedTrainings]
-      trainingTrackerProbe.reply(TrainingRepository.TrackedTrainingIds(Set(42L)))
+      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHunt]
+      trainingToHuntFetcherProbe.reply(TrainingToHuntRepository.TrackedTrainingIds(Set(42L)))
 
       trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
       trainingFetcherProbe.reply(sampleVacantTraining)

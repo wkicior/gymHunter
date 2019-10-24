@@ -6,15 +6,15 @@ import akka.actor.{Actor, ActorLogging, Props}
 import scala.language.postfixOps
 
 
-object TrainingRepository {
-  def props: Props = Props[TrainingRepository]
+object TrainingToHuntRepository {
+  def props: Props = Props[TrainingToHuntRepository]
   final case class GetTrackedTrainings()
   final case class TrackedTrainingIds(ids: Set[Long])
   final case class AddTrackedTraining(id: Long)
 }
 
-class TrainingRepository extends Actor with ActorLogging {
-  import TrainingRepository._
+class TrainingToHuntRepository extends Actor with ActorLogging {
+  import TrainingToHuntRepository._
 
   private var trainingIds = Set(550633L, 550656, 699157, 699176, 699158, 550634, 550635, 550667)
 
