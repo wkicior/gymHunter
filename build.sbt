@@ -10,7 +10,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
   "com.typesafe.akka" %% "akka-http"   % "10.1.9",
+  "com.typesafe.akka" %% "akka-http-testkit" % "10.1.9",
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+  "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
   "org.scalatest" %% "scalatest" % "3.0.8" % "test",
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.9",
   "com.enragedginger" %% "akka-quartz-scheduler" % "1.8.1-akka-2.5.x"

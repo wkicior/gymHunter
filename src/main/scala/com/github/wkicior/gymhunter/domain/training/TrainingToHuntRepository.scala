@@ -13,7 +13,7 @@ object TrainingToHuntRepository {
   def props: Props = Props[TrainingToHuntRepository]
   final case class GetAllTrainingsToHunt()
   final case class TrainingsToHunt(trainings: Set[TrainingToHunt])
-  final case class AddTrainingToHunt(training: TrainingToHunt)
+  final case class AddTrainingToHunt(training: TrainingToHuntRequest)
 }
 
 class TrainingToHuntRepository extends Actor with ActorLogging {
@@ -32,8 +32,10 @@ class TrainingToHuntRepository extends Actor with ActorLogging {
     case GetAllTrainingsToHunt() =>
       //TODO: use source? val trainingIdsSource: Source[Long, NotUsed] = Source(List(550633, 550634))
       sender() ! TrainingsToHunt(trainings)
-    case AddTrainingToHunt(training) =>
-      this.trainings += training
+    case AddTrainingToHunt(tr) =>
+      val trainingToHunt = TrainingToHunt(UUID.randomUUID().toString, tr.externalSystemId, tr.clubId, tr.huntingEndTime)
+      this.trainings += trainingToHunt
+      sender() ! trainingToHunt
     case _ =>
       log.error("Unrecognized message")
   }
