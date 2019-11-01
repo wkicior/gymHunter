@@ -11,14 +11,14 @@ class TrainingToHuntControllerSpec extends WordSpec with Matchers with Scalatest
   "TrainingToHuntController" should {
     import com.github.wkicior.gymhunter.app.JsonProtocol._
 
-    "return all trainings to hunt" in {
+    "return empty list of trainings to hunt " in {
       Get("/api/trainings-to-hunt") ~> new RestApi(system).routes ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[Seq[TrainingToHunt]].size should be > 0
+        responseAs[Seq[TrainingToHunt]].size shouldEqual 0
       }
     }
 
-    "save new training to hunt" in {
+    "save new training to hunt and be able to return it" in {
       val endOfHuntDatetime = OffsetDateTime.of(2019, 11, 1, 14, 0, 0, 0, ZoneOffset.UTC)
       Post("/api/trainings-to-hunt", TrainingToHuntRequest(123, 8, endOfHuntDatetime)) ~> new RestApi(system).routes ~> check {
         status shouldEqual StatusCodes.CREATED
@@ -33,7 +33,13 @@ class TrainingToHuntControllerSpec extends WordSpec with Matchers with Scalatest
           responseAs[Seq[TrainingToHunt]] should contain (trainingToHunt)
         }
       }
+    }
 
+    "return already saved trainings to hunt " in {
+      Get("/api/trainings-to-hunt") ~> new RestApi(system).routes ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[Seq[TrainingToHunt]].size shouldEqual 1
+      }
     }
   }
 }

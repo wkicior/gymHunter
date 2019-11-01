@@ -14,13 +14,13 @@ class TrainingToHuntRepositorySpec(_system: ActorSystem) extends TestKit(_system
     shutdown(system)
   }
 
-  "A TrainingTracker Actor" should {
-    "return some tracked training ids" in {
+  "A TrainingToHuntRepository Actor" should {
+    "return initially empty trainings to hunt" in {
       val probe = TestProbe()
       val trainingTracker = system.actorOf(TrainingToHuntRepository.props)
       trainingTracker.tell(TrainingToHuntRepository.GetAllTrainingsToHunt(), probe.ref)
       val response = probe.expectMsgType[TrainingToHuntRepository.TrainingsToHunt]
-      response.trainings.size should be > 0
+      response.trainings.size shouldEqual 0
     }
   }
 }
