@@ -11,14 +11,13 @@ import scala.language.postfixOps
 
 
 object TrainingToHuntProvider {
-  def props: Props = Props[TrainingToHuntProvider]
+  def props(trainingToHuntRepository: ActorRef): Props = Props(new TrainingToHuntProvider(trainingToHuntRepository))
   final case class GetTrainingsToHunt()
 }
 
-class TrainingToHuntProvider extends Actor with ActorLogging {
+class TrainingToHuntProvider(trainingToHuntRepository: ActorRef) extends Actor with ActorLogging {
   import TrainingToHuntProvider._
   implicit val ec = ExecutionContext.global
-  val trainingToHuntRepository: ActorRef = context.actorOf(TrainingToHuntRepository.props, "trainingToHuntRepository")
 
   def receive = {
     case GetTrainingsToHunt() =>

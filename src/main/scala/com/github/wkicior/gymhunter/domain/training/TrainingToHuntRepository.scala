@@ -1,13 +1,10 @@
 package com.github.wkicior.gymhunter.domain.training
 
 
-import java.time.OffsetDateTime
 import java.util.UUID
 
-import akka.actor.{Actor, ActorLogging, Props}
-import akka.persistence.PersistentActor
-import akka.actor._
-import akka.persistence._
+import akka.actor.{ActorLogging, Props, _}
+import akka.persistence.{PersistentActor, _}
 
 import scala.language.postfixOps
 
@@ -31,15 +28,6 @@ class TrainingToHuntRepository extends PersistentActor with ActorLogging {
 
   override def persistenceId = "training-to-hunt-id-1"
   var state = State()
-
-//  private var trainings = Set(
-//    TrainingToHunt(UUID.randomUUID().toString, 550633L, 8, OffsetDateTime.now()),
-//    TrainingToHunt(UUID.randomUUID().toString, 550656L, 8, OffsetDateTime.now()),
-//    TrainingToHunt(UUID.randomUUID().toString, 699176L, 8, OffsetDateTime.now()),
-//    TrainingToHunt(UUID.randomUUID().toString, 699158L, 8, OffsetDateTime.now()),
-//    TrainingToHunt(UUID.randomUUID().toString, 550634L, 8, OffsetDateTime.now()),
-//    TrainingToHunt(UUID.randomUUID().toString, 550635L, 8, OffsetDateTime.now()),
-//    TrainingToHunt(UUID.randomUUID().toString, 550667L, 8, OffsetDateTime.now()))
 
   def updateState(event: TrainingToHunt): Unit =
     state = state.updated(event)
@@ -67,17 +55,4 @@ class TrainingToHuntRepository extends PersistentActor with ActorLogging {
       sender() ! TrainingsToHunt(state.events.toSet)
     case "print" => println(state)
   }
-
-
-//  def receive = {
-//    case GetAllTrainingsToHunt() =>
-//      //TODO: use source? val trainingIdsSource: Source[Long, NotUsed] = Source(List(550633, 550634))
-//      sender() ! TrainingsToHunt(trainings)
-//    case AddTrainingToHunt(tr) =>
-//
-//      this.trainings += trainingToHunt
-//      sender() ! trainingToHunt
-//    case _ =>
-//      log.error("Unrecognized message")
-//  }
 }

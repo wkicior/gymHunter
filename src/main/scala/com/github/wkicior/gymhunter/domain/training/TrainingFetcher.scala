@@ -1,14 +1,10 @@
 package com.github.wkicior.gymhunter.domain.training
 
-import java.time.LocalDateTime
-
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
-import spray.json.DefaultJsonProtocol._
 
 import scala.concurrent.Future
 import scala.language.postfixOps

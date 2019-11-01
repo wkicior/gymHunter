@@ -1,31 +1,27 @@
 package com.github.wkicior.gymhunter.web
 
-import java.time
-import java.time.OffsetDateTime
-
 import akka.actor.{ActorRef, ActorSystem}
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.training.{TrainingToHunt, TrainingToHuntProvider, TrainingToHuntRequest}
 import com.github.wkicior.gymhunter.domain.training.TrainingToHuntProvider.GetTrainingsToHunt
 import com.github.wkicior.gymhunter.domain.training.TrainingToHuntRepository.TrainingsToHunt
+import com.github.wkicior.gymhunter.domain.training.{TrainingToHunt, TrainingToHuntProvider, TrainingToHuntRequest}
 
 import scala.concurrent.Future
-import scala.language.postfixOps
 import scala.concurrent.duration._
+import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
 
 trait TrainingToHuntController {
   implicit def system: ActorSystem
+  implicit def trainingToHuntRepository: ActorRef
   import com.github.wkicior.gymhunter.app.JsonProtocol._
 
-  def createTrainingToHuntProvider(): ActorRef = system.actorOf(TrainingToHuntProvider.props)
+  def createTrainingToHuntProvider(): ActorRef = system.actorOf(TrainingToHuntProvider.props(trainingToHuntRepository))
 
   lazy val trainingToHuntProvider: ActorRef = createTrainingToHuntProvider()
 
