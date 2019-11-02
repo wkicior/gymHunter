@@ -3,7 +3,8 @@ package com.github.wkicior.gymhunter.domain.training.tohunt
 import java.time.OffsetDateTime
 import java.util.UUID
 
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHunt.{TrainingToHuntAdded, TrainingToHuntEvent}
+import akka.event.jul.Logger
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHunt.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent}
 
 import scala.collection.mutable.ListBuffer
 
@@ -25,9 +26,12 @@ object TrainingToHunt {
     val id: TrainingToHuntId
   }
   final case class TrainingToHuntAdded(id: TrainingToHuntId, externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime) extends TrainingToHuntEvent
+  final case class TrainingToHuntDeleted(id: TrainingToHuntId) extends TrainingToHuntEvent
 }
 
 case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: Long) {
+
+  val logger = Logger("name")
   var huntingEndTime: OffsetDateTime = OffsetDateTime.now()
   var active: Boolean = true
 
@@ -44,11 +48,28 @@ case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: 
     this.huntingEndTime = trainingToHuntAddedEvent.huntingEndTime
   }
 
+  private def applyPendingEvent(event: TrainingToHuntEvent): Unit = {
+    apply(event)
+    pendingEvents += event
+  }
+
   def apply(trainingToHuntEvent: TrainingToHuntEvent): TrainingToHunt = {
+    trainingToHuntEvent match {
+      case TrainingToHuntDeleted(_) => setAsInactive()
+      case event => logger.warning(s"unrecognized event: $event")
+    }
     this
   }
 
   def pendingEventsList(): List[TrainingToHuntEvent] = pendingEvents.toList
+
+  def deleteBySettingAsInactive() = {
+    applyPendingEvent(TrainingToHuntDeleted(id))
+  }
+
+  private def setAsInactive(): Unit = {
+    this.active = false
+  }
 }
 
 

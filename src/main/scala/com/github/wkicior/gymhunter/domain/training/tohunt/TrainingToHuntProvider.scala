@@ -22,11 +22,9 @@ class TrainingToHuntProvider(trainingToHuntEventStore: ActorRef) extends Actor w
   def receive = {
     case GetTrainingsToHuntQuery() =>
       implicit val timeout: Timeout = Timeout(5 seconds)
-      ask(trainingToHuntEventStore, GetAllTrainingsToHunt()).pipeTo(sender())
-    case tr: CreateTrainingToHuntCommand =>
-      implicit val timeout: Timeout = Timeout(5 seconds)
-      val trainingToHunt = new TrainingToHunt(TrainingToHuntId(), tr.externalSystemId, tr.clubId, tr.huntingEndTime)
-      ask(trainingToHuntEventStore, StoreEvents(trainingToHunt.id, trainingToHunt.pendingEventsList())).pipeTo(sender())
+      ask(trainingToHuntEventStore, GetAllTrainingsToHunt()).mapTo[Set[TrainingToHunt]]
+        .map(f => f.filter(f => f.active))
+        .pipeTo(sender())
     case _ =>
       log.error("Unrecognized message")
   }

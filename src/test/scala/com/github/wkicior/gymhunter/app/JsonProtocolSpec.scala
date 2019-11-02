@@ -2,9 +2,9 @@ package com.github.wkicior.gymhunter.app
 
 import java.time.{OffsetDateTime, ZoneOffset}
 
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntId
+import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntId}
 import org.scalatest._
-import spray.json.{JsString, JsonFormat}
+import spray.json.{JsBoolean, JsNumber, JsObject, JsString, JsonFormat}
 
 import scala.language.postfixOps
 
@@ -32,6 +32,19 @@ class JsonProtocolSpec extends WordSpec with Matchers {
       val trainingToHuntJson = JsString(trainingToHuntId.toString)
       val jf = implicitly[JsonFormat[TrainingToHuntId]]
       jf.write(trainingToHuntId) shouldBe trainingToHuntJson
+    }
+
+    "write TrainingToHunt value to JSON" in {
+      val trainingToHunt = new TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now())
+      val trainingToHuntJson = JsObject(
+        "id" -> JsString(trainingToHunt.id.toString),
+        "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
+        "clubId" -> JsNumber(trainingToHunt.clubId),
+        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime),
+        "active" -> JsBoolean(trainingToHunt.active)
+      )
+      val jf = implicitly[JsonFormat[TrainingToHunt]]
+      jf.write(trainingToHunt) shouldBe trainingToHuntJson
     }
   }
 }

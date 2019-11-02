@@ -13,6 +13,7 @@ import scala.language.postfixOps
 object TrainingToHuntEventStore {
   def props: Props = Props[TrainingToHuntEventStore]
   final case class GetAllTrainingsToHunt()
+  final case class GetTraining(id: TrainingToHuntId)
   final case class StoreEvents(id: TrainingToHuntId, events: List[TrainingToHuntEvent])
 
   type OptionalTrainingToHunt[+A] = Either[TrainingToHuntNotFound, A]
@@ -50,7 +51,9 @@ class TrainingToHuntEventStore extends PersistentActor with ActorLogging {
         .map(_ => state(id).toOption.get) pipeTo sender()
     case GetAllTrainingsToHunt() =>
       sender() ! state()
-    case "print" => println(state)
+    case GetTraining(id) =>
+      sender() ! state(id)
+    case x => log.error(s"Unrecognized message $x")
   }
 
   private def handleEvent[E <: TrainingToHuntEvent](e: => E): Future[E] = {

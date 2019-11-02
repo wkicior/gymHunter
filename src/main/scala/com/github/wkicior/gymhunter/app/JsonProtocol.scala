@@ -29,11 +29,12 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
 
 
     implicit object ColorJsonFormat extends RootJsonFormat[TrainingToHunt] {
-      def write(c: TrainingToHunt) = JsObject(
-        "id" -> JsString(c.id.toString),
-        "externalSystemId" -> JsNumber(c.externalSystemId),
-        "clubId" -> JsNumber(c.clubId),
-        "huntingEndTime" -> OffsetDateTimeFormat.write(c.huntingEndTime)
+      def write(trainingToHunt: TrainingToHunt) = JsObject(
+        "id" -> JsString(trainingToHunt.id.toString),
+        "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
+        "clubId" -> JsNumber(trainingToHunt.clubId),
+        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime),
+        "active" -> JsBoolean(trainingToHunt.active)
       )
       def read(value: JsValue) = {
         value.asJsObject.getFields("id", "externalSystemId", "clubId", "huntingEndTime") match {
