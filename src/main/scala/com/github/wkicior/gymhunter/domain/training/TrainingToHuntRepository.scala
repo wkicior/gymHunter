@@ -4,8 +4,11 @@ package com.github.wkicior.gymhunter.domain.training
 import java.util.UUID
 
 import akka.actor.{ActorLogging, Props, _}
-import akka.persistence.{PersistentActor, _}
+import akka.pattern.pipe
+import akka.persistence.{PersistentActor, SnapshotOffer}
+import com.github.wkicior.gymhunter.domain.training.TrainingToHuntRepository.{OptionalTrainingToHunt, TrainingToHuntEvent, TrainingToHuntNotFound}
 
+import scala.concurrent.{Future, Promise}
 import scala.language.postfixOps
 
 
@@ -14,29 +17,37 @@ object TrainingToHuntRepository {
   final case class GetAllTrainingsToHunt()
   final case class TrainingsToHunt(trainings: Set[TrainingToHunt])
   final case class AddTrainingToHunt(training: TrainingToHuntRequest)
+
+  sealed trait TrainingToHuntEvent {
+    val id: String
+    val trainingToHunt: TrainingToHunt
+  }
+
+  final case class TrainingToHuntAdded(id: String, trainingToHunt: TrainingToHunt) extends TrainingToHuntEvent
+
+  type OptionalTrainingToHunt[+A] = Either[TrainingToHuntNotFound, A]
+  final case class TrainingToHuntNotFound(id: String) extends RuntimeException(s"Training to hunt not found with id $id")
+
 }
 
 
-case class State(events: List[TrainingToHunt] = Nil) {
-  def updated(evt: TrainingToHunt): State = copy(evt :: events)
-  def size: Int = events.length
-  override def toString: String = events.reverse.toString
+final case class State(trainingsToHunt: Map[String, TrainingToHunt] = Map.empty) {
+  def apply(): Set[TrainingToHunt] = trainingsToHunt.values.toSet
+  def apply(id: String): OptionalTrainingToHunt[TrainingToHunt] = trainingsToHunt.get(id).toRight(TrainingToHuntNotFound(id))
+  def +(event: TrainingToHuntEvent): State = State(trainingsToHunt.updated(event.id, event.trainingToHunt))
 }
 
 class TrainingToHuntRepository extends PersistentActor with ActorLogging {
   import TrainingToHuntRepository._
+  import context._
+  implicit val system: ActorSystem = ActorSystem("GymHunter")
+
 
   override def persistenceId = "training-to-hunt-id-1"
   var state = State()
 
-  def updateState(event: TrainingToHunt): Unit =
-    state = state.updated(event)
-
-  def numEvents =
-    state.size
-
   val receiveRecover: Receive = {
-    case evt: TrainingToHunt => updateState(evt)
+    case event: TrainingToHuntEvent => state += event
     case SnapshotOffer(_, snapshot: State) => state = snapshot
   }
 
@@ -44,15 +55,22 @@ class TrainingToHuntRepository extends PersistentActor with ActorLogging {
   val receiveCommand: Receive = {
     case AddTrainingToHunt(tr) =>
       val trainingToHunt = TrainingToHunt(UUID.randomUUID().toString, tr.externalSystemId, tr.clubId, tr.huntingEndTime)
-      persist(trainingToHunt) { event =>
-        updateState(event)
-        context.system.eventStream.publish(event)
-        if (lastSequenceNr % snapShotInterval == 0 && lastSequenceNr != 0)
-          saveSnapshot(state)
-      }
-      sender() ! trainingToHunt
+      handleEvent(TrainingToHuntAdded(trainingToHunt.id, trainingToHunt)) pipeTo sender()
+      ()
+
     case GetAllTrainingsToHunt() =>
-      sender() ! TrainingsToHunt(state.events.toSet)
+      sender() ! TrainingsToHunt(state())
     case "print" => println(state)
+  }
+
+  private def handleEvent[E <: TrainingToHuntEvent](e: => E): Future[TrainingToHunt] = {
+    val p = Promise[TrainingToHunt]
+    persist(e) { event =>
+      state += event
+      p.success(event.trainingToHunt)
+      system.eventStream.publish(event)
+      if (lastSequenceNr != 0 && lastSequenceNr % 1000 == 0) saveSnapshot(state)
+    }
+    p.future
   }
 }
