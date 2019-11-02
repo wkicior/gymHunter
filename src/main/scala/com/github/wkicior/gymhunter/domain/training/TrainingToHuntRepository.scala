@@ -1,8 +1,6 @@
 package com.github.wkicior.gymhunter.domain.training
 
 
-import java.util.UUID
-
 import akka.actor.{ActorLogging, Props, _}
 import akka.pattern.pipe
 import akka.persistence.{PersistentActor, SnapshotOffer}
@@ -15,7 +13,7 @@ import scala.language.postfixOps
 object TrainingToHuntRepository {
   def props: Props = Props[TrainingToHuntRepository]
   final case class GetAllTrainingsToHunt()
-  final case class AddTrainingToHunt(training: TrainingToHuntRequest)
+  final case class AddTrainingToHunt(training: TrainingToHunt)
 
   sealed trait TrainingToHuntEvent {
     val id: TrainingToHuntId
@@ -38,8 +36,6 @@ final case class State(trainingsToHunt: Map[TrainingToHuntId, TrainingToHunt] = 
 class TrainingToHuntRepository extends PersistentActor with ActorLogging {
   import TrainingToHuntRepository._
   import context._
-  implicit val system: ActorSystem = ActorSystem("GymHunter")
-
 
   override def persistenceId = "training-to-hunt-id-1"
   var state = State()
@@ -52,8 +48,7 @@ class TrainingToHuntRepository extends PersistentActor with ActorLogging {
   val snapShotInterval = 1000
   val receiveCommand: Receive = {
     case AddTrainingToHunt(tr) =>
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), tr.externalSystemId, tr.clubId, tr.huntingEndTime)
-      handleEvent(TrainingToHuntAdded(trainingToHunt.id, trainingToHunt)) pipeTo sender()
+      handleEvent(TrainingToHuntAdded(tr.id, tr)) pipeTo sender()
       ()
 
     case GetAllTrainingsToHunt() =>
@@ -66,7 +61,7 @@ class TrainingToHuntRepository extends PersistentActor with ActorLogging {
     persist(e) { event =>
       state += event
       p.success(event.trainingToHunt)
-      system.eventStream.publish(event)
+      context.system.eventStream.publish(event)
       if (lastSequenceNr != 0 && lastSequenceNr % 1000 == 0) saveSnapshot(state)
     }
     p.future

@@ -28,6 +28,6 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
 
   implicit val trainingFormat = jsonFormat4(Training)
   implicit val trainingResponseFormat = jsonFormat1(TrainingResponse)
-  implicit val trainingsToHuntFormat = jsonFormat4(TrainingToHunt)
+  implicit val trainingsToHuntFormat = jsonFormat5(TrainingToHunt)
   implicit val trainingToHuntRequestFormat = jsonFormat3(TrainingToHuntRequest)
 }

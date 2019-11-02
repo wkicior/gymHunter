@@ -25,7 +25,8 @@ class TrainingToHuntProvider(trainingToHuntRepository: ActorRef) extends Actor w
       ask(trainingToHuntRepository, GetAllTrainingsToHunt()).pipeTo(sender())
     case tr: TrainingToHuntRequest =>
       implicit val timeout: Timeout = Timeout(5 seconds)
-      ask(trainingToHuntRepository, AddTrainingToHunt(tr)).pipeTo(sender())
+      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), tr.externalSystemId, tr.clubId, tr.huntingEndTime, true)
+      ask(trainingToHuntRepository, AddTrainingToHunt(trainingToHunt)).pipeTo(sender())
     case _ =>
       log.error("Unrecognized message")
   }

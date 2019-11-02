@@ -26,11 +26,12 @@ class TrainingToHuntControllerSpec extends WordSpec with Matchers with Scalatest
       Post("/api/trainings-to-hunt", TrainingToHuntRequest(123, 8, endOfHuntDatetime)) ~> routes ~> check {
         status shouldEqual StatusCodes.CREATED
         val trainingToHunt = responseAs[TrainingToHunt]
-        inside(trainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId, huntingEndTime) =>
+        inside(trainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId, huntingEndTime, active) =>
             id.toString should not be empty
             externalSystemId shouldEqual 123
             clubId shouldEqual 8
             huntingEndTime shouldEqual endOfHuntDatetime
+            active shouldEqual true
         }
         Get("/api/trainings-to-hunt") ~> routes ~> check {
           responseAs[Seq[TrainingToHunt]] should contain (trainingToHunt)

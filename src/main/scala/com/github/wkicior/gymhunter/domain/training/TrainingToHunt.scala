@@ -16,6 +16,6 @@ object TrainingToHuntId {
   def apply(id: String): TrainingToHuntId = new TrainingToHuntId(UUID.fromString(id))
 }
 
-case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime)
+case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime, active: Boolean = true)
 
 
