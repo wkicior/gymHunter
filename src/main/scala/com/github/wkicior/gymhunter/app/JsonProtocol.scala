@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import com.github.wkicior.gymhunter.domain.training._
-import spray.json.{JsValue, _}
+import spray.json.{JsValue, JsString, _}
 
 object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
 
@@ -26,8 +26,25 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
     }
   }
 
+
+    implicit object ColorJsonFormat extends RootJsonFormat[TrainingToHunt] {
+      def write(c: TrainingToHunt) = JsObject(
+        "id" -> JsString(c.id.toString),
+        "externalSystemId" -> JsNumber(c.externalSystemId),
+        "clubId" -> JsNumber(c.clubId),
+        "huntingEndTime" -> OffsetDateTimeFormat.write(c.huntingEndTime)
+      )
+      def read(value: JsValue) = {
+        value.asJsObject.getFields("id", "externalSystemId", "clubId", "huntingEndTime") match {
+          case Seq(JsString(id), JsNumber(externalSystemId), JsNumber(clubId), huntingEndTime) =>
+            new TrainingToHunt(TrainingToHuntId(id), externalSystemId.longValue, clubId.longValue, OffsetDateTimeFormat.read(huntingEndTime))
+          case _ => throw new DeserializationException("TrainingToHunt expected")
+        }
+      }
+    }
+
+
   implicit val trainingFormat = jsonFormat4(Training)
   implicit val trainingResponseFormat = jsonFormat1(TrainingResponse)
-  implicit val trainingsToHuntFormat = jsonFormat5(TrainingToHunt)
   implicit val trainingToHuntRequestFormat = jsonFormat3(TrainingToHuntRequest)
 }

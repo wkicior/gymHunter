@@ -3,7 +3,7 @@ package com.github.wkicior.gymhunter.domain.training
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.training.TrainingToHuntRepository.{AddTrainingToHunt, GetAllTrainingsToHunt}
+import com.github.wkicior.gymhunter.domain.training.TrainingToHuntRepository.{GetAllTrainingsToHunt, StoreEvents}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -25,8 +25,8 @@ class TrainingToHuntProvider(trainingToHuntRepository: ActorRef) extends Actor w
       ask(trainingToHuntRepository, GetAllTrainingsToHunt()).pipeTo(sender())
     case tr: TrainingToHuntRequest =>
       implicit val timeout: Timeout = Timeout(5 seconds)
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), tr.externalSystemId, tr.clubId, tr.huntingEndTime, true)
-      ask(trainingToHuntRepository, AddTrainingToHunt(trainingToHunt)).pipeTo(sender())
+      val trainingToHunt = new TrainingToHunt(TrainingToHuntId(), tr.externalSystemId, tr.clubId, tr.huntingEndTime)
+      ask(trainingToHuntRepository, StoreEvents(trainingToHunt.id, trainingToHunt.pendingEventsList())).pipeTo(sender())
     case _ =>
       log.error("Unrecognized message")
   }
