@@ -40,8 +40,7 @@ class JsonProtocolSpec extends WordSpec with Matchers {
         "id" -> JsString(trainingToHunt.id.toString),
         "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
         "clubId" -> JsNumber(trainingToHunt.clubId),
-        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime),
-        "active" -> JsBoolean(trainingToHunt.active)
+        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime)
       )
       val jf = implicitly[JsonFormat[TrainingToHunt]]
       jf.write(trainingToHunt) shouldBe trainingToHuntJson

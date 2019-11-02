@@ -44,7 +44,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
     }
   })
 
-  val trainingHunter = system.actorOf(TrainingHunter.props(trainingToHuntFetcherProps, trainingFetcherProps, vacantTrainingManagerProps))
+  private val trainingHunter = system.actorOf(TrainingHunter.props(trainingToHuntFetcherProps, trainingFetcherProps, vacantTrainingManagerProps))
 
   "A TrainingHunter Actor" should {
     """ask trainingFetcher for all tracked training ids

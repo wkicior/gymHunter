@@ -3,7 +3,7 @@ package com.github.wkicior.gymhunter.domain.training.tohunt
 import akka.actor.{ActorLogging, Props, _}
 import akka.pattern.pipe
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHunt.{TrainingToHuntAdded, TrainingToHuntEvent}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHunt.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.{OptionalTrainingToHunt, TrainingToHuntNotFound}
 
 import scala.concurrent.{Future, Promise}
@@ -27,6 +27,7 @@ final case class State(trainingsToHunt: Map[TrainingToHuntId, TrainingToHunt] = 
   def +(event: TrainingToHuntEvent): State = {
     event match {
       case createEvent: TrainingToHuntAdded => State(trainingsToHunt.updated(event.id, new TrainingToHunt(createEvent)))
+      case deleteEvent: TrainingToHuntDeleted => State(trainingsToHunt.removed(deleteEvent.id))
       case _ => State(trainingsToHunt.updated(event.id, trainingsToHunt(event.id)(event)))
     }
   }
@@ -48,7 +49,7 @@ class TrainingToHuntEventStore extends PersistentActor with ActorLogging {
   val receiveCommand: Receive = {
     case StoreEvents(id, events) =>
       Future.sequence(events.map(e => handleEvent(e)))
-        .map(_ => state(id).toOption.get) pipeTo sender()
+        .map(_ => state(id)) pipeTo sender()
     case GetAllTrainingsToHunt() =>
       sender() ! state()
     case GetTraining(id) =>

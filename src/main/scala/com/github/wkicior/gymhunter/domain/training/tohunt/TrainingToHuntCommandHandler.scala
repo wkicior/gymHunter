@@ -26,17 +26,18 @@ class TrainingToHuntCommandHandler(trainingToHuntEventStore: ActorRef) extends A
     case tr: CreateTrainingToHuntCommand =>
       implicit val timeout: Timeout = Timeout(5 seconds)
       val trainingToHunt = new TrainingToHunt(TrainingToHuntId(), tr.externalSystemId, tr.clubId, tr.huntingEndTime)
-      ask(trainingToHuntEventStore, StoreEvents(trainingToHunt.id, trainingToHunt.pendingEventsList())).pipeTo(sender())
+      ask(trainingToHuntEventStore, StoreEvents(trainingToHunt.id, trainingToHunt.pendingEventsList())).mapTo[OptionalTrainingToHunt[TrainingToHunt]]
+        .map(tth => tth.toOption.get)
+        .pipeTo(sender())
     case DeleteTrainingToHuntCommand(id) =>
       implicit val timeout: Timeout = Timeout(5 seconds)
       ask(trainingToHuntEventStore, GetTraining(id)).mapTo[OptionalTrainingToHunt[TrainingToHunt]]
         .flatMap {
           case ot@Left(_) => Future(ot)
           case Right(trainingToHunt) =>
-            trainingToHunt.deleteBySettingAsInactive()
-            ask(trainingToHuntEventStore, StoreEvents(trainingToHunt.id, trainingToHunt.pendingEventsList()))
-              .mapTo[TrainingToHunt]
-              .map(tth => Right(tth))
+            trainingToHunt.delete()
+            ask(trainingToHuntEventStore, StoreEvents(trainingToHunt.id, trainingToHunt.pendingEventsList())).mapTo[OptionalTrainingToHunt[TrainingToHunt]]
+              .map(_ => Right(trainingToHunt))
         }
         .pipeTo(sender())
     case _ =>

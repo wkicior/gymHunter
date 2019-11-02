@@ -34,8 +34,7 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
         "id" -> JsString(trainingToHunt.id.toString),
         "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
         "clubId" -> JsNumber(trainingToHunt.clubId),
-        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime),
-        "active" -> JsBoolean(trainingToHunt.active)
+        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime)
       )
       def read(value: JsValue) = {
         value.asJsObject.getFields("id", "externalSystemId", "clubId", "huntingEndTime") match {

@@ -31,7 +31,6 @@ case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: 
 
   val logger = Logger("name")
   var huntingEndTime: OffsetDateTime = OffsetDateTime.now()
-  var active: Boolean = true
 
   private var pendingEvents = ListBuffer[TrainingToHuntEvent]()
 
@@ -53,7 +52,7 @@ case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: 
 
   def apply(trainingToHuntEvent: TrainingToHuntEvent): TrainingToHunt = {
     trainingToHuntEvent match {
-      case TrainingToHuntDeleted(_) => setAsInactive()
+      case deleted: TrainingToHuntDeleted => logger.info(s"TrainingToHunt deleted ${deleted.id}")
       case event => logger.warning(s"unrecognized event: $event")
     }
     this
@@ -61,12 +60,8 @@ case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: 
 
   def pendingEventsList(): List[TrainingToHuntEvent] = pendingEvents.toList
 
-  def deleteBySettingAsInactive() = {
+  def delete() = {
     applyPendingEvent(TrainingToHuntDeleted(id))
-  }
-
-  private def setAsInactive(): Unit = {
-    this.active = false
   }
 }
 

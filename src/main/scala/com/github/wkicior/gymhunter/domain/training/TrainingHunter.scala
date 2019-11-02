@@ -14,7 +14,7 @@ import scala.language.postfixOps
 
 
 object TrainingHunter {
-  def props(trainingToHuntRepository: ActorRef): Props = Props(new TrainingHunter(TrainingToHuntProvider.props(trainingToHuntRepository), TrainingFetcher.props, VacantTrainingManager.props))
+  def props(trainingToHuntEventStore: ActorRef): Props = Props(new TrainingHunter(TrainingToHuntProvider.props(trainingToHuntEventStore), TrainingFetcher.props, VacantTrainingManager.props(trainingToHuntEventStore)))
   def props(trainingHunterProps: Props, trainingFetcherProps: Props, vacantTrainingManagerProps: Props): Props = Props(
     new TrainingHunter(trainingHunterProps, trainingFetcherProps, vacantTrainingManagerProps)
   )
