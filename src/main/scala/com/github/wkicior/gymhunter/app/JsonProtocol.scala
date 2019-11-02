@@ -5,7 +5,8 @@ import java.time.format.DateTimeFormatter
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import com.github.wkicior.gymhunter.domain.training._
-import spray.json.{JsValue, JsString, _}
+import com.github.wkicior.gymhunter.domain.training.tohunt.{CreateTrainingToHuntCommand, TrainingToHunt, TrainingToHuntId}
+import spray.json.{JsString, JsValue, _}
 
 object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
 
@@ -46,5 +47,5 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
 
   implicit val trainingFormat = jsonFormat4(Training)
   implicit val trainingResponseFormat = jsonFormat1(TrainingResponse)
-  implicit val trainingToHuntRequestFormat = jsonFormat3(TrainingToHuntRequest)
+  implicit val trainingToHuntRequestFormat = jsonFormat3(CreateTrainingToHuntCommand)
 }

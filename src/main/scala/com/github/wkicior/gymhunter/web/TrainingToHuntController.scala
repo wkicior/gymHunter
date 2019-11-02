@@ -6,8 +6,8 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.training.TrainingToHuntProvider.GetTrainingsToHunt
-import com.github.wkicior.gymhunter.domain.training.{TrainingToHunt, TrainingToHuntProvider, TrainingToHuntRequest}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntProvider.GetTrainingsToHuntQuery
+import com.github.wkicior.gymhunter.domain.training.tohunt.{CreateTrainingToHuntCommand, TrainingToHunt, TrainingToHuntCommandHandler, TrainingToHuntProvider}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -17,21 +17,20 @@ import scala.util.{Failure, Success}
 
 trait TrainingToHuntController {
   implicit def system: ActorSystem
-  implicit def trainingToHuntRepository: ActorRef
+  implicit def trainingToHuntEventStore: ActorRef
   import com.github.wkicior.gymhunter.app.JsonProtocol._
 
-  def createTrainingToHuntProvider(): ActorRef = system.actorOf(TrainingToHuntProvider.props(trainingToHuntRepository))
-
-  lazy val trainingToHuntProvider: ActorRef = createTrainingToHuntProvider()
+  lazy val trainingToHuntProvider: ActorRef = system.actorOf(TrainingToHuntProvider.props(trainingToHuntEventStore))
+  lazy val trainingToHuntCommandHandler: ActorRef = system.actorOf(TrainingToHuntCommandHandler.props(trainingToHuntEventStore))
 
   def getTrainingsToHunt(): Future[Set[TrainingToHunt]] = {
     implicit val timeout: Timeout = Timeout(5 seconds)
-    ask(trainingToHuntProvider, GetTrainingsToHunt()).mapTo[Set[TrainingToHunt]]
+    ask(trainingToHuntProvider, GetTrainingsToHuntQuery()).mapTo[Set[TrainingToHunt]]
   }
 
-  def saveTrainingToHunt(trainingToHuntRequest: TrainingToHuntRequest): Future[TrainingToHunt] = {
+  def saveTrainingToHunt(trainingToHuntRequest: CreateTrainingToHuntCommand): Future[TrainingToHunt] = {
     implicit val timeout: Timeout = Timeout(5 seconds)
-    ask(trainingToHuntProvider, trainingToHuntRequest).mapTo[TrainingToHunt]
+    ask(trainingToHuntCommandHandler, trainingToHuntRequest).mapTo[TrainingToHunt]
   }
 
   lazy val trainingToHuntRoutes: Route = pathPrefix("trainings-to-hunt") {
@@ -48,7 +47,7 @@ trait TrainingToHuntController {
       },
       post {
         decodeRequest {
-          entity(as[TrainingToHuntRequest]) { trainingToHuntRequest =>
+          entity(as[CreateTrainingToHuntCommand]) { trainingToHuntRequest =>
             complete(StatusCodes.Created, saveTrainingToHunt(trainingToHuntRequest))
           }
         }

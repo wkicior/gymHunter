@@ -6,6 +6,7 @@ import akka.routing.RoundRobinPool
 import akka.util.Timeout
 import com.github.wkicior.gymhunter.domain.training.TrainingFetcher.GetTraining
 import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.ProcessVacantTraining
+import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntProvider}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,7 +24,6 @@ object TrainingHunter {
 class TrainingHunter(trainingToHuntProviderProps: Props, trainingFetcherProps: Props, vacantTrainingManagerProps: Props) extends Actor with ActorLogging {
   import TrainingHunter._
   import TrainingToHuntProvider._
-  import TrainingToHuntRepository._
   implicit val ec = ExecutionContext.global
 
   val trainingToHuntProvider: ActorRef = context.actorOf(trainingToHuntProviderProps, "trainingToHuntProvider")
@@ -47,7 +47,7 @@ class TrainingHunter(trainingToHuntProviderProps: Props, trainingFetcherProps: P
 
   private def getTrackedTrainings(): Future[Set[TrainingToHunt]] = {
     implicit val timeout: Timeout = Timeout(5 seconds)
-    ask(trainingToHuntProvider, GetTrainingsToHunt()).mapTo[Set[TrainingToHunt]]
+    ask(trainingToHuntProvider, GetTrainingsToHuntQuery()).mapTo[Set[TrainingToHunt]]
   }
 
   private def getTraining(id: Long): Future[Training] = {

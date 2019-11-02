@@ -4,14 +4,14 @@ import java.time.{OffsetDateTime, ZoneOffset}
 
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.github.wkicior.gymhunter.domain.training.{TrainingToHunt, TrainingToHuntRepository, TrainingToHuntRequest}
+import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntEventStore, CreateTrainingToHuntCommand}
 import org.scalatest.{Inside, Matchers, WordSpec}
 
 class TrainingToHuntControllerSpec extends WordSpec with Matchers with ScalatestRouteTest with Inside {
   "TrainingToHuntController" should {
     import com.github.wkicior.gymhunter.app.JsonProtocol._
 
-    val trainingToHuntRepository = system.actorOf(TrainingToHuntRepository.props, "TrainingToHuntRepository")
+    val trainingToHuntRepository = system.actorOf(TrainingToHuntEventStore.props, "TrainingToHuntEventStore")
     val routes = new RestApi(system, trainingToHuntRepository).routes
 
     "return empty list of trainings to hunt " in {
@@ -23,7 +23,7 @@ class TrainingToHuntControllerSpec extends WordSpec with Matchers with Scalatest
 
     "save new training to hunt and be able to return it" in {
       val endOfHuntDatetime = OffsetDateTime.of(2019, 11, 1, 14, 0, 0, 0, ZoneOffset.UTC)
-      Post("/api/trainings-to-hunt", TrainingToHuntRequest(123, 8, endOfHuntDatetime)) ~> routes ~> check {
+      Post("/api/trainings-to-hunt", CreateTrainingToHuntCommand(123, 8, endOfHuntDatetime)) ~> routes ~> check {
         status shouldEqual StatusCodes.CREATED
         val trainingToHunt = responseAs[TrainingToHunt]
         inside(trainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId) =>

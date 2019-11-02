@@ -1,4 +1,4 @@
-package com.github.wkicior.gymhunter.domain.training
+package com.github.wkicior.gymhunter.domain.training.tohunt
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestProbe}
@@ -6,7 +6,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
 
-class TrainingToHuntRepositorySpec(_system: ActorSystem) extends TestKit(_system) with Matchers with WordSpecLike with BeforeAndAfterAll {
+class TrainingToHuntEventStoreSpec(_system: ActorSystem) extends TestKit(_system) with Matchers with WordSpecLike with BeforeAndAfterAll {
 
   def this() = this(ActorSystem("GymHunter"))
 
@@ -17,8 +17,8 @@ class TrainingToHuntRepositorySpec(_system: ActorSystem) extends TestKit(_system
   "A TrainingToHuntRepository Actor" should {
     "return initially empty trainings to hunt" in {
       val probe = TestProbe()
-      val trainingTracker = system.actorOf(TrainingToHuntRepository.props)
-      trainingTracker.tell(TrainingToHuntRepository.GetAllTrainingsToHunt(), probe.ref)
+      val trainingTracker = system.actorOf(TrainingToHuntEventStore.props)
+      trainingTracker.tell(TrainingToHuntEventStore.GetAllTrainingsToHunt(), probe.ref)
       val response = probe.expectMsgType[Set[TrainingToHunt]]
       response.size shouldEqual 0
     }

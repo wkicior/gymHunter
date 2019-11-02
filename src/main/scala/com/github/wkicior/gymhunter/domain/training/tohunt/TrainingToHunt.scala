@@ -1,13 +1,13 @@
-package com.github.wkicior.gymhunter.domain.training
+package com.github.wkicior.gymhunter.domain.training.tohunt
 
 import java.time.OffsetDateTime
 import java.util.UUID
 
-import com.github.wkicior.gymhunter.domain.training.TrainingToHunt.{TrainingToHuntAdded, TrainingToHuntEvent}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHunt.{TrainingToHuntAdded, TrainingToHuntEvent}
 
 import scala.collection.mutable.ListBuffer
 
-case class TrainingToHuntRequest(externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime)
+case class CreateTrainingToHuntCommand(externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime)
 
 class TrainingToHuntId(val id: UUID) extends AnyVal {
   override def toString: String = id.toString

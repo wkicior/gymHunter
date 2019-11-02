@@ -4,6 +4,7 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
+import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntId, TrainingToHuntProvider}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -57,7 +58,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHunt]
+      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
       trainingToHuntFetcherProbe.reply(Set())
 
       trainingFetcherProbe.expectNoMessage()
@@ -76,7 +77,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHunt]
+      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
       trainingToHuntFetcherProbe.reply(Set(new TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now)))
 
       trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
@@ -97,7 +98,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHunt]
+      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
       trainingToHuntFetcherProbe.reply(Set(new TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now)))
 
       trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))

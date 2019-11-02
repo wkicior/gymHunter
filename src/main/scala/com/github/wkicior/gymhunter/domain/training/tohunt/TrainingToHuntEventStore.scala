@@ -1,22 +1,19 @@
-package com.github.wkicior.gymhunter.domain.training
-
+package com.github.wkicior.gymhunter.domain.training.tohunt
 
 import akka.actor.{ActorLogging, Props, _}
 import akka.pattern.pipe
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.github.wkicior.gymhunter.domain.training.TrainingToHunt.{TrainingToHuntAdded, TrainingToHuntEvent}
-import com.github.wkicior.gymhunter.domain.training.TrainingToHuntRepository.{OptionalTrainingToHunt, TrainingToHuntNotFound}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHunt.{TrainingToHuntAdded, TrainingToHuntEvent}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.{OptionalTrainingToHunt, TrainingToHuntNotFound}
 
 import scala.concurrent.{Future, Promise}
 import scala.language.postfixOps
 
 
-object TrainingToHuntRepository {
-  def props: Props = Props[TrainingToHuntRepository]
+object TrainingToHuntEventStore {
+  def props: Props = Props[TrainingToHuntEventStore]
   final case class GetAllTrainingsToHunt()
   final case class StoreEvents(id: TrainingToHuntId, events: List[TrainingToHuntEvent])
-
-
 
   type OptionalTrainingToHunt[+A] = Either[TrainingToHuntNotFound, A]
   final case class TrainingToHuntNotFound(id: TrainingToHuntId) extends RuntimeException(s"Training to hunt not found with id $id")
@@ -34,8 +31,8 @@ final case class State(trainingsToHunt: Map[TrainingToHuntId, TrainingToHunt] = 
   }
 }
 
-class TrainingToHuntRepository extends PersistentActor with ActorLogging {
-  import TrainingToHuntRepository._
+class TrainingToHuntEventStore extends PersistentActor with ActorLogging {
+  import TrainingToHuntEventStore._
   import context._
 
   override def persistenceId = "training-to-hunt-id-1"
@@ -48,14 +45,9 @@ class TrainingToHuntRepository extends PersistentActor with ActorLogging {
 
   val snapShotInterval = 1000
   val receiveCommand: Receive = {
-//    case AddTrainingToHunt(tr) =>
-//      handleEvent(TrainingToHuntAdded(tr.id, tr)) pipeTo sender()
-//      ()
     case StoreEvents(id, events) =>
-      val results = events.map(e => handleEvent(e))
-      Future.sequence(results).map(_ => state(id).toOption.get) pipeTo sender()
-      //sender() ! state(id).toOption.get
-
+      Future.sequence(events.map(e => handleEvent(e)))
+        .map(_ => state(id).toOption.get) pipeTo sender()
     case GetAllTrainingsToHunt() =>
       sender() ! state()
     case "print" => println(state)
