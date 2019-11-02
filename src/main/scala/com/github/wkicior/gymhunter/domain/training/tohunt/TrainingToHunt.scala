@@ -8,8 +8,6 @@ import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHunt.{Train
 
 import scala.collection.mutable.ListBuffer
 
-case class CreateTrainingToHuntCommand(externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime)
-
 class TrainingToHuntId(val id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }

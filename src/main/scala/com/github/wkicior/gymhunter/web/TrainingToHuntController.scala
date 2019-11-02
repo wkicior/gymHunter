@@ -8,7 +8,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.DeleteTrainingToHuntCommand
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.{CreateTrainingToHuntCommand, DeleteTrainingToHuntCommand}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.OptionalTrainingToHunt
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntProvider.GetTrainingsToHuntQuery
 import com.github.wkicior.gymhunter.domain.training.tohunt._

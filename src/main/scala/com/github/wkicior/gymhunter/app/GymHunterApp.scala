@@ -5,7 +5,7 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import com.github.wkicior.gymhunter.app.GymHunterSupervisor.RunGymHunting
-import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHuntEventStore, CreateTrainingToHuntCommand}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore
 import com.github.wkicior.gymhunter.web.RestApi
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 

@@ -5,7 +5,8 @@ import java.util.UUID
 
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.github.wkicior.gymhunter.domain.training.tohunt.{CreateTrainingToHuntCommand, TrainingToHunt, TrainingToHuntEventStore}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.CreateTrainingToHuntCommand
+import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntEventStore}
 import org.scalatest.{Inside, Matchers, WordSpec}
 import spray.json.{JsBoolean, JsObject}
 
@@ -76,7 +77,7 @@ class TrainingToHuntControllerSpec extends WordSpec with Matchers with Scalatest
 
     "delete returns 404 if training to hunt is not found" in {
       val id = UUID.randomUUID().toString
-      Delete(s"/api/trainings-to-hunt/${id}") ~> routes ~> check {
+      Delete(s"/api/trainings-to-hunt/$id") ~> routes ~> check {
         status shouldEqual StatusCodes.NOT_FOUND
       }
     }
