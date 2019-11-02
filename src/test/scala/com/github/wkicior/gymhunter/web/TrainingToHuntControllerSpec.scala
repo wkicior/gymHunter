@@ -27,7 +27,7 @@ class TrainingToHuntControllerSpec extends WordSpec with Matchers with Scalatest
         status shouldEqual StatusCodes.CREATED
         val trainingToHunt = responseAs[TrainingToHunt]
         inside(trainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId, huntingEndTime) =>
-            id should not be empty
+            id.toString should not be empty
             externalSystemId shouldEqual 123
             clubId shouldEqual 8
             huntingEndTime shouldEqual endOfHuntDatetime

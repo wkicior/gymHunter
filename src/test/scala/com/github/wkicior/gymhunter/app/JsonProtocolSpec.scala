@@ -2,6 +2,7 @@ package com.github.wkicior.gymhunter.app
 
 import java.time.{OffsetDateTime, ZoneOffset}
 
+import com.github.wkicior.gymhunter.domain.training.TrainingToHuntId
 import org.scalatest._
 import spray.json.{JsString, JsonFormat}
 
@@ -24,6 +25,13 @@ class JsonProtocolSpec extends WordSpec with Matchers {
       val dateJson = JsString("2019-10-10T07:15:00+0200")
       val jf = implicitly[JsonFormat[OffsetDateTime]]
       jf.read(dateJson) shouldBe date
+    }
+
+    "write TrainingToHuntId value to JSON" in {
+      val trainingToHuntId = TrainingToHuntId()
+      val trainingToHuntJson = JsString(trainingToHuntId.toString)
+      val jf = implicitly[JsonFormat[TrainingToHuntId]]
+      jf.write(trainingToHuntId) shouldBe trainingToHuntJson
     }
   }
 }

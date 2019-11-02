@@ -18,20 +18,20 @@ object TrainingToHuntRepository {
   final case class AddTrainingToHunt(training: TrainingToHuntRequest)
 
   sealed trait TrainingToHuntEvent {
-    val id: String
+    val id: TrainingToHuntId
     val trainingToHunt: TrainingToHunt
   }
 
-  final case class TrainingToHuntAdded(id: String, trainingToHunt: TrainingToHunt) extends TrainingToHuntEvent
+  final case class TrainingToHuntAdded(id: TrainingToHuntId, trainingToHunt: TrainingToHunt) extends TrainingToHuntEvent
 
   type OptionalTrainingToHunt[+A] = Either[TrainingToHuntNotFound, A]
-  final case class TrainingToHuntNotFound(id: String) extends RuntimeException(s"Training to hunt not found with id $id")
+  final case class TrainingToHuntNotFound(id: TrainingToHuntId) extends RuntimeException(s"Training to hunt not found with id $id")
 }
 
 
-final case class State(trainingsToHunt: Map[String, TrainingToHunt] = Map.empty) {
+final case class State(trainingsToHunt: Map[TrainingToHuntId, TrainingToHunt] = Map.empty) {
   def apply(): Set[TrainingToHunt] = trainingsToHunt.values.toSet
-  def apply(id: String): OptionalTrainingToHunt[TrainingToHunt] = trainingsToHunt.get(id).toRight(TrainingToHuntNotFound(id))
+  def apply(id: TrainingToHuntId): OptionalTrainingToHunt[TrainingToHunt] = trainingsToHunt.get(id).toRight(TrainingToHuntNotFound(id))
   def +(event: TrainingToHuntEvent): State = State(trainingsToHunt.updated(event.id, event.trainingToHunt))
 }
 
@@ -52,7 +52,7 @@ class TrainingToHuntRepository extends PersistentActor with ActorLogging {
   val snapShotInterval = 1000
   val receiveCommand: Receive = {
     case AddTrainingToHunt(tr) =>
-      val trainingToHunt = TrainingToHunt(UUID.randomUUID().toString, tr.externalSystemId, tr.clubId, tr.huntingEndTime)
+      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), tr.externalSystemId, tr.clubId, tr.huntingEndTime)
       handleEvent(TrainingToHuntAdded(trainingToHunt.id, trainingToHunt)) pipeTo sender()
       ()
 
