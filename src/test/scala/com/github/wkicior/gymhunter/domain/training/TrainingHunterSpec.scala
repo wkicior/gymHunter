@@ -58,7 +58,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
 
       //then
       trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHunt]
-      trainingToHuntFetcherProbe.reply(TrainingToHuntRepository.TrainingsToHunt(Set()))
+      trainingToHuntFetcherProbe.reply(Set())
 
       trainingFetcherProbe.expectNoMessage()
       vacantTrainingManagerProbe.expectNoMessage()
@@ -77,7 +77,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
 
       //then
       trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHunt]
-      trainingToHuntFetcherProbe.reply(TrainingToHuntRepository.TrainingsToHunt(Set(TrainingToHunt("id", 42, 8, OffsetDateTime.now))))
+      trainingToHuntFetcherProbe.reply(Set(TrainingToHunt("id", 42, 8, OffsetDateTime.now)))
 
       trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
       trainingFetcherProbe.reply(sampleNonVacantTraining)
@@ -98,7 +98,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
 
       //then
       trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHunt]
-      trainingToHuntFetcherProbe.reply(TrainingToHuntRepository.TrainingsToHunt(Set(TrainingToHunt("id", 42, 8, OffsetDateTime.now))))
+      trainingToHuntFetcherProbe.reply(Set(TrainingToHunt("id", 42, 8, OffsetDateTime.now)))
 
       trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
       trainingFetcherProbe.reply(sampleVacantTraining)

@@ -7,7 +7,6 @@ import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
 import com.github.wkicior.gymhunter.domain.training.TrainingToHuntProvider.GetTrainingsToHunt
-import com.github.wkicior.gymhunter.domain.training.TrainingToHuntRepository.TrainingsToHunt
 import com.github.wkicior.gymhunter.domain.training.{TrainingToHunt, TrainingToHuntProvider, TrainingToHuntRequest}
 
 import scala.concurrent.Future
@@ -25,9 +24,9 @@ trait TrainingToHuntController {
 
   lazy val trainingToHuntProvider: ActorRef = createTrainingToHuntProvider()
 
-  def getTrainingsToHunt(): Future[TrainingsToHunt] = {
+  def getTrainingsToHunt(): Future[Set[TrainingToHunt]] = {
     implicit val timeout: Timeout = Timeout(5 seconds)
-    ask(trainingToHuntProvider, GetTrainingsToHunt()).mapTo[TrainingsToHunt]
+    ask(trainingToHuntProvider, GetTrainingsToHunt()).mapTo[Set[TrainingToHunt]]
   }
 
   def saveTrainingToHunt(trainingToHuntRequest: TrainingToHuntRequest): Future[TrainingToHunt] = {
@@ -40,7 +39,7 @@ trait TrainingToHuntController {
       get {
         onComplete(getTrainingsToHunt()) {
           case Success(trainingsToHunt) =>
-            complete(StatusCodes.OK, trainingsToHunt.trainings)
+            complete(StatusCodes.OK, trainingsToHunt)
           case Failure(throwable) =>
             throwable match {
               case _ => complete(StatusCodes.InternalServerError, "Failed to get trainings to hunt.")

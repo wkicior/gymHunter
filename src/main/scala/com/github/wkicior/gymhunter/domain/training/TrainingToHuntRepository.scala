@@ -15,7 +15,6 @@ import scala.language.postfixOps
 object TrainingToHuntRepository {
   def props: Props = Props[TrainingToHuntRepository]
   final case class GetAllTrainingsToHunt()
-  final case class TrainingsToHunt(trainings: Set[TrainingToHunt])
   final case class AddTrainingToHunt(training: TrainingToHuntRequest)
 
   sealed trait TrainingToHuntEvent {
@@ -27,7 +26,6 @@ object TrainingToHuntRepository {
 
   type OptionalTrainingToHunt[+A] = Either[TrainingToHuntNotFound, A]
   final case class TrainingToHuntNotFound(id: String) extends RuntimeException(s"Training to hunt not found with id $id")
-
 }
 
 
@@ -59,7 +57,7 @@ class TrainingToHuntRepository extends PersistentActor with ActorLogging {
       ()
 
     case GetAllTrainingsToHunt() =>
-      sender() ! TrainingsToHunt(state())
+      sender() ! state()
     case "print" => println(state)
   }
 
