@@ -25,20 +25,21 @@ class TrainingToHuntCommandHandler(trainingToHuntEventStore: ActorRef) extends A
   def receive: PartialFunction[Any, Unit] = {
     case tr: CreateTrainingToHuntCommand =>
       implicit val timeout: Timeout = Timeout(5 seconds)
-      val trainingToHunt = new TrainingToHunt(TrainingToHuntId(), tr.externalSystemId, tr.clubId, tr.huntingEndTime)
-      ask(trainingToHuntEventStore, StoreEvents(trainingToHunt.id, trainingToHunt.pendingEventsList())).mapTo[OptionalTrainingToHunt[TrainingToHunt]]
-        .map(tth => tth.toOption.get)
+      val trainingToHunt = new TrainingToHuntAggregate(TrainingToHuntId(), tr.externalSystemId, tr.clubId, tr.huntingEndTime)
+      ask(trainingToHuntEventStore, StoreEvents(trainingToHunt.id, trainingToHunt.pendingEventsList())).mapTo[OptionalTrainingToHunt[TrainingToHuntAggregate]]
+        .map(ttha => ttha.toOption.get)
+        .map(ttha => ttha())
         .pipeTo(sender())
 
     case DeleteTrainingToHuntCommand(id) =>
       implicit val timeout: Timeout = Timeout(5 seconds)
-      ask(trainingToHuntEventStore, GetTraining(id)).mapTo[OptionalTrainingToHunt[TrainingToHunt]]
+      ask(trainingToHuntEventStore, GetTraining(id)).mapTo[OptionalTrainingToHunt[TrainingToHuntAggregate]]
         .flatMap {
           case ot@Left(_) => Future(ot)
           case Right(trainingToHunt) =>
             trainingToHunt.delete()
-            ask(trainingToHuntEventStore, StoreEvents(trainingToHunt.id, trainingToHunt.pendingEventsList())).mapTo[OptionalTrainingToHunt[TrainingToHunt]]
-              .map(_ => Right(trainingToHunt))
+            ask(trainingToHuntEventStore, StoreEvents(trainingToHunt.id, trainingToHunt.pendingEventsList())).mapTo[OptionalTrainingToHunt[TrainingToHuntAggregate]]
+              .map(_ => Right(trainingToHunt()))
         }
         .pipeTo(sender())
     case _ =>

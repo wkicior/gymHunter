@@ -3,7 +3,7 @@ package com.github.wkicior.gymhunter.domain.training.tohunt
 import akka.actor.{ActorLogging, Props, _}
 import akka.pattern.pipe
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHunt.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.{OptionalTrainingToHunt, TrainingToHuntNotFound}
 
 import scala.concurrent.{Future, Promise}
@@ -21,12 +21,12 @@ object TrainingToHuntEventStore {
 }
 
 
-final case class State(trainingsToHunt: Map[TrainingToHuntId, TrainingToHunt] = Map.empty) {
-  def apply(): Set[TrainingToHunt] = trainingsToHunt.values.toSet
-  def apply(id: TrainingToHuntId): OptionalTrainingToHunt[TrainingToHunt] = trainingsToHunt.get(id).toRight(TrainingToHuntNotFound(id))
+final case class State(trainingsToHunt: Map[TrainingToHuntId, TrainingToHuntAggregate] = Map.empty) {
+  def apply(): Set[TrainingToHuntAggregate] = trainingsToHunt.values.toSet
+  def apply(id: TrainingToHuntId): OptionalTrainingToHunt[TrainingToHuntAggregate] = trainingsToHunt.get(id).toRight(TrainingToHuntNotFound(id))
   def +(event: TrainingToHuntEvent): State = {
     event match {
-      case createEvent: TrainingToHuntAdded => State(trainingsToHunt.updated(event.id, new TrainingToHunt(createEvent)))
+      case createEvent: TrainingToHuntAdded => State(trainingsToHunt.updated(event.id, new TrainingToHuntAggregate(createEvent)))
       case deleteEvent: TrainingToHuntDeleted => State(trainingsToHunt.removed(deleteEvent.id))
       case _ => State(trainingsToHunt.updated(event.id, trainingsToHunt(event.id)(event)))
     }

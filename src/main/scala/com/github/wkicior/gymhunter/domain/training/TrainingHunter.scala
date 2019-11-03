@@ -33,7 +33,7 @@ class TrainingHunter(trainingToHuntProviderProps: Props, trainingFetcherProps: P
   def receive: PartialFunction[Any, Unit] = {
     case Hunt() =>
       log.info("hunting begins...")
-      getTrackedTrainings
+      getTrainingsToHunt
         .map(trainings => trainings.map(training => getTraining(training.externalSystemId)))
         .flatMap(trainingFutures => Future.sequence(trainingFutures))
         .foreach(trainings => {
@@ -45,7 +45,7 @@ class TrainingHunter(trainingToHuntProviderProps: Props, trainingFetcherProps: P
       log.error("unrecognized message")
   }
 
-  private def getTrackedTrainings: Future[Set[TrainingToHunt]] = {
+  private def getTrainingsToHunt: Future[Set[TrainingToHunt]] = {
     implicit val timeout: Timeout = Timeout(5 seconds)
     ask(trainingToHuntProvider, GetTrainingsToHuntQuery()).mapTo[Set[TrainingToHunt]]
   }

@@ -5,7 +5,7 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHunt.{TrainingToHuntAdded, TrainingToHuntDeleted}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.{CreateTrainingToHuntCommand, DeleteTrainingToHuntCommand}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.{GetTraining, OptionalTrainingToHunt, TrainingToHuntNotFound}
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
@@ -35,7 +35,7 @@ class TrainingToHuntCommandHandlerSpec(_system: ActorSystem) extends TestKit(_sy
     "create new TrainingToHunt and store it to the event store" in {
       //given
       val createTrainingToHuntCommand = CreateTrainingToHuntCommand(1L, 2L, OffsetDateTime.now())
-      val sampleTrainingToHunt = new TrainingToHunt(TrainingToHuntId(), 1L, 2L, createTrainingToHuntCommand.huntingEndTime)
+      val sampleTrainingToHunt = new TrainingToHuntAggregate(TrainingToHuntId(), 1L, 2L, createTrainingToHuntCommand.huntingEndTime)
       //when
       trainingToHuntCommandHandler.tell(createTrainingToHuntCommand, probe.ref)
 
@@ -46,7 +46,7 @@ class TrainingToHuntCommandHandlerSpec(_system: ActorSystem) extends TestKit(_sy
       trainingToHuntEventStoreProbe.reply(Right(sampleTrainingToHunt))
 
       val response = probe.expectMsgType[TrainingToHunt]
-      response shouldEqual sampleTrainingToHunt
+      response shouldEqual sampleTrainingToHunt()
     }
 
     "return OptionalTrainingToHunt with Left(TrainingToHuntNotFound) exception if TrainingToHunt is not found on delete" in {
@@ -67,7 +67,7 @@ class TrainingToHuntCommandHandlerSpec(_system: ActorSystem) extends TestKit(_sy
     "delete existing TrainingToHunt and return OptionalTrainingToHunt with deleted TrainingToHunt" in {
       //given
       val trainingToHuntAddedEvent = TrainingToHuntAdded(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now())
-      val sampleTrainingToHunt = new TrainingToHunt(trainingToHuntAddedEvent) //creating from event in order to have clean events list
+      val sampleTrainingToHunt = new TrainingToHuntAggregate(trainingToHuntAddedEvent) //creating from event in order to have clean events list
 
       //when
       trainingToHuntCommandHandler.tell(DeleteTrainingToHuntCommand(sampleTrainingToHunt.id), probe.ref)
@@ -80,7 +80,7 @@ class TrainingToHuntCommandHandlerSpec(_system: ActorSystem) extends TestKit(_sy
       trainingToHuntEventStoreProbe.reply(Left(TrainingToHuntNotFound(sampleTrainingToHunt.id)))
 
       val response = probe.expectMsgType[OptionalTrainingToHunt[TrainingToHunt]]
-      response shouldEqual Right(sampleTrainingToHunt)
+      response shouldEqual Right(sampleTrainingToHunt())
     }
   }
 }

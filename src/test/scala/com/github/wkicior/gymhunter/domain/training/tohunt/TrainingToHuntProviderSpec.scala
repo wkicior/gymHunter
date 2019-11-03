@@ -29,7 +29,7 @@ class TrainingToHuntProviderSpec(_system: ActorSystem) extends TestKit(_system) 
   "A TrainingToHuntProvider Actor" should {
     "return active trainings to hunt from the event store" in {
       //given
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L)
+      val trainingToHunt = TrainingToHuntAggregate(TrainingToHuntId(), 1L, 2L)
       //when
       trainingToHuntProvider.tell(GetTrainingsToHuntQuery(), probe.ref)
 
@@ -38,7 +38,7 @@ class TrainingToHuntProviderSpec(_system: ActorSystem) extends TestKit(_system) 
       trainingToHuntEventStoreProbe.reply(Set(trainingToHunt))
 
       val response = probe.expectMsgType[Set[TrainingToHunt]]
-      response should contain only trainingToHunt
+      response should contain only trainingToHunt()
     }
   }
 }

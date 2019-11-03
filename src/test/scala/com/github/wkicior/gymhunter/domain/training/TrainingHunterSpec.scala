@@ -18,7 +18,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
   override def afterAll: Unit = {
     shutdown(system)
   }
-  val trainingToHuntFetcherProbe = TestProbe()
+  val trainingToHuntProviderProbe = TestProbe()
   val trainingFetcherProbe = TestProbe()
   val vacantTrainingManagerProbe = TestProbe()
 
@@ -29,7 +29,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
   })
   val trainingToHuntFetcherProps = Props(new Actor {
     def receive: PartialFunction[Any, Unit] = {
-      case x => trainingToHuntFetcherProbe.ref forward x
+      case x => trainingToHuntProviderProbe.ref forward x
     }
   })
   val vacantTrainingManagerProps = Props(new Actor {
@@ -52,8 +52,8 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
-      trainingToHuntFetcherProbe.reply(Set())
+      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
+      trainingToHuntProviderProbe.reply(Set())
 
       trainingFetcherProbe.expectNoMessage()
       vacantTrainingManagerProbe.expectNoMessage()
@@ -71,8 +71,8 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
-      trainingToHuntFetcherProbe.reply(Set(new TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now)))
+      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
+      trainingToHuntProviderProbe.reply(Set(TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now)))
 
       trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
       trainingFetcherProbe.reply(sampleNonVacantTraining)
@@ -92,8 +92,8 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntFetcherProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
-      trainingToHuntFetcherProbe.reply(Set(new TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now)))
+      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
+      trainingToHuntProviderProbe.reply(Set(TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now)))
 
       trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
       trainingFetcherProbe.reply(sampleVacantTraining)

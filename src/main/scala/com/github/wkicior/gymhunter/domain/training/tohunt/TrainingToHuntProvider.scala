@@ -22,7 +22,9 @@ class TrainingToHuntProvider(trainingToHuntEventStore: ActorRef) extends Actor w
   def receive: PartialFunction[Any, Unit] = {
     case GetTrainingsToHuntQuery() =>
       implicit val timeout: Timeout = Timeout(5 seconds)
-      ask(trainingToHuntEventStore, GetAllTrainingsToHunt()).pipeTo(sender())
+      ask(trainingToHuntEventStore, GetAllTrainingsToHunt()).mapTo[Set[TrainingToHuntAggregate]]
+        .map(trainingsToHunt => trainingsToHunt.map(t => t()))
+        .pipeTo(sender())
     case _ =>
       log.error("Unrecognized message")
   }

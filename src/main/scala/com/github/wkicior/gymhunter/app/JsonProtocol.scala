@@ -28,25 +28,8 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
     }
   }
 
-
-    implicit object ColorJsonFormat extends RootJsonFormat[TrainingToHunt] {
-      def write(trainingToHunt: TrainingToHunt) = JsObject(
-        "id" -> JsString(trainingToHunt.id.toString),
-        "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
-        "clubId" -> JsNumber(trainingToHunt.clubId),
-        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime)
-      )
-      def read(value: JsValue): TrainingToHunt = {
-        value.asJsObject.getFields("id", "externalSystemId", "clubId", "huntingEndTime") match {
-          case Seq(JsString(id), JsNumber(externalSystemId), JsNumber(clubId), huntingEndTime) =>
-            new TrainingToHunt(TrainingToHuntId(id), externalSystemId.longValue, clubId.longValue, OffsetDateTimeFormat.read(huntingEndTime))
-          case _ => throw DeserializationException("TrainingToHunt expected")
-        }
-      }
-    }
-
-
   implicit val trainingFormat: RootJsonFormat[Training] = jsonFormat4(Training)
   implicit val trainingResponseFormat: RootJsonFormat[TrainingResponse] = jsonFormat1(TrainingResponse)
+  implicit val trainingToHuntFormat: RootJsonFormat[TrainingToHunt] = jsonFormat4(TrainingToHunt)
   implicit val trainingToHuntRequestFormat: RootJsonFormat[CreateTrainingToHuntCommand] = jsonFormat3(CreateTrainingToHuntCommand)
 }

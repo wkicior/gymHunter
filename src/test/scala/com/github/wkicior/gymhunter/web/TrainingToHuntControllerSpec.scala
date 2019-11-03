@@ -28,12 +28,12 @@ class TrainingToHuntControllerSpec extends WordSpec with Matchers with Scalatest
       Post("/api/trainings-to-hunt", CreateTrainingToHuntCommand(123, 8, endOfHuntDatetime)) ~> routes ~> check {
         status shouldEqual StatusCodes.CREATED
         val trainingToHunt = responseAs[TrainingToHunt]
-        inside(trainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId) =>
+        inside(trainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId, huntingEndTime) =>
             id.toString should not be empty
             externalSystemId shouldEqual 123
             clubId shouldEqual 8
+            huntingEndTime shouldEqual endOfHuntDatetime
         }
-        trainingToHunt.huntingEndTime shouldEqual endOfHuntDatetime
         Get("/api/trainings-to-hunt") ~> routes ~> check {
           responseAs[Seq[TrainingToHunt]] should contain (trainingToHunt)
         }
@@ -55,12 +55,12 @@ class TrainingToHuntControllerSpec extends WordSpec with Matchers with Scalatest
         Delete(s"/api/trainings-to-hunt/${trainingToHunt.id}") ~> routes ~> check {
           status shouldEqual StatusCodes.OK
           val deletedTrainingToHunt = responseAs[TrainingToHunt]
-          inside(deletedTrainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId) =>
+          inside(deletedTrainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId, huntingEndTime) =>
             id.toString should not be empty
             externalSystemId shouldEqual 124
             clubId shouldEqual 8
+            huntingEndTime shouldEqual endOfHuntDatetime
           }
-          deletedTrainingToHunt.huntingEndTime shouldEqual endOfHuntDatetime
 
           Get("/api/trainings-to-hunt") ~> routes ~> check {
             status shouldEqual StatusCodes.OK
