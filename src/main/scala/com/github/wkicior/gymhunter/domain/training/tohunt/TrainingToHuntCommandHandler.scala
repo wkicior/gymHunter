@@ -29,6 +29,7 @@ class TrainingToHuntCommandHandler(trainingToHuntEventStore: ActorRef) extends A
       ask(trainingToHuntEventStore, StoreEvents(trainingToHunt.id, trainingToHunt.pendingEventsList())).mapTo[OptionalTrainingToHunt[TrainingToHunt]]
         .map(tth => tth.toOption.get)
         .pipeTo(sender())
+
     case DeleteTrainingToHuntCommand(id) =>
       implicit val timeout: Timeout = Timeout(5 seconds)
       ask(trainingToHuntEventStore, GetTraining(id)).mapTo[OptionalTrainingToHunt[TrainingToHunt]]
