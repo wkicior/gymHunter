@@ -14,7 +14,7 @@ class VacantTrainingManager extends Actor with ActorLogging {
   import MailNotifier._
 
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case Notify(training: Training, trainingToHunt: TrainingToHunt) =>
       log.info(s"sending email to available on $training")
   }

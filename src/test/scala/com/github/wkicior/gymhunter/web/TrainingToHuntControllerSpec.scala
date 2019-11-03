@@ -8,7 +8,6 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.CreateTrainingToHuntCommand
 import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntEventStore}
 import org.scalatest.{Inside, Matchers, WordSpec}
-import spray.json.{JsBoolean, JsObject}
 
 class TrainingToHuntControllerSpec extends WordSpec with Matchers with ScalatestRouteTest with Inside {
   "TrainingToHuntController" should {

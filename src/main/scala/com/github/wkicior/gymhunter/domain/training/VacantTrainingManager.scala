@@ -16,7 +16,7 @@ class VacantTrainingManager(trainingToHuntEventStore: ActorRef) extends Actor wi
   val trainingToHuntProvider: ActorRef = context.actorOf(TrainingToHuntProvider.props(trainingToHuntEventStore))
 
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case ProcessVacantTraining(training: Training) =>
       log.info(s"slots available on $training")
       //

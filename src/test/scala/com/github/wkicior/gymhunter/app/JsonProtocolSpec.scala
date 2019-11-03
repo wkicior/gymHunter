@@ -4,7 +4,7 @@ import java.time.{OffsetDateTime, ZoneOffset}
 
 import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntId}
 import org.scalatest._
-import spray.json.{JsBoolean, JsNumber, JsObject, JsString, JsonFormat}
+import spray.json.{JsNumber, JsObject, JsString, JsonFormat}
 
 import scala.language.postfixOps
 

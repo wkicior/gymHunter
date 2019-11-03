@@ -14,7 +14,7 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
   implicit object OffsetDateTimeFormat extends RootJsonFormat[OffsetDateTime] {
     private val offsetDateTimeFormat = "yyyy-MM-dd'T'HH:mm:ssx"
     def write(dateTime: OffsetDateTime) = JsString(dateTime.format(DateTimeFormatter.ofPattern(offsetDateTimeFormat)))
-    def read(value: JsValue) = value match {
+    def read(value: JsValue): OffsetDateTime = value match {
       case JsString(dateTime) => OffsetDateTime.parse(dateTime, DateTimeFormatter.ofPattern(offsetDateTimeFormat))
       case _ => deserializationError("OffsetDateTime expected.")
     }
@@ -22,7 +22,7 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
 
   implicit object TrainingToHuntIdFormat extends RootJsonFormat[TrainingToHuntId] {
     def write(trainingToHuntId: TrainingToHuntId) = JsString(trainingToHuntId.toString)
-    def read(value: JsValue) = value match {
+    def read(value: JsValue): TrainingToHuntId = value match {
       case JsString(trainingToHuntId) => TrainingToHuntId(trainingToHuntId)
       case _ => deserializationError("TrainingToHuntId expected.")
     }
@@ -36,17 +36,17 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
         "clubId" -> JsNumber(trainingToHunt.clubId),
         "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime)
       )
-      def read(value: JsValue) = {
+      def read(value: JsValue): TrainingToHunt = {
         value.asJsObject.getFields("id", "externalSystemId", "clubId", "huntingEndTime") match {
           case Seq(JsString(id), JsNumber(externalSystemId), JsNumber(clubId), huntingEndTime) =>
             new TrainingToHunt(TrainingToHuntId(id), externalSystemId.longValue, clubId.longValue, OffsetDateTimeFormat.read(huntingEndTime))
-          case _ => throw new DeserializationException("TrainingToHunt expected")
+          case _ => throw DeserializationException("TrainingToHunt expected")
         }
       }
     }
 
 
-  implicit val trainingFormat = jsonFormat4(Training)
-  implicit val trainingResponseFormat = jsonFormat1(TrainingResponse)
-  implicit val trainingToHuntRequestFormat = jsonFormat3(CreateTrainingToHuntCommand)
+  implicit val trainingFormat: RootJsonFormat[Training] = jsonFormat4(Training)
+  implicit val trainingResponseFormat: RootJsonFormat[TrainingResponse] = jsonFormat1(TrainingResponse)
+  implicit val trainingToHuntRequestFormat: RootJsonFormat[CreateTrainingToHuntCommand] = jsonFormat3(CreateTrainingToHuntCommand)
 }

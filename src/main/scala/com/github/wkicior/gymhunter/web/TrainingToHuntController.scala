@@ -27,7 +27,7 @@ trait TrainingToHuntController {
   lazy val trainingToHuntProvider: ActorRef = system.actorOf(TrainingToHuntProvider.props(trainingToHuntEventStore))
   lazy val trainingToHuntCommandHandler: ActorRef = system.actorOf(TrainingToHuntCommandHandler.props(trainingToHuntEventStore))
 
-  def getTrainingsToHunt(): Future[Set[TrainingToHunt]] = {
+  def getTrainingsToHunt: Future[Set[TrainingToHunt]] = {
     implicit val timeout: Timeout = Timeout(5 seconds)
     ask(trainingToHuntProvider, GetTrainingsToHuntQuery()).mapTo[Set[TrainingToHunt]]
   }
@@ -45,7 +45,7 @@ trait TrainingToHuntController {
   lazy val trainingToHuntRoutes: Route = pathPrefix("trainings-to-hunt") {
     concat(
       get {
-        onComplete(getTrainingsToHunt()) {
+        onComplete(getTrainingsToHunt) {
           case Success(trainingsToHunt) =>
             complete(StatusCodes.OK, trainingsToHunt)
           case Failure(throwable) =>

@@ -24,10 +24,8 @@ class TrainingToHuntCommandHandlerSpec(_system: ActorSystem) extends TestKit(_sy
   val trainingToHuntEventStoreProbe = TestProbe()
 
   val trainingToHuntEventStoreProps = Props(new Actor {
-    def receive = {
-      case x => {
-        trainingToHuntEventStoreProbe.ref forward x
-      }
+    def receive: PartialFunction[Any, Unit] = {
+      case x => trainingToHuntEventStoreProbe.ref forward x
     }
   })
   private val trainingToHuntEventStore = system.actorOf(trainingToHuntEventStoreProps)

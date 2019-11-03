@@ -60,7 +60,7 @@ case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: 
 
   def pendingEventsList(): List[TrainingToHuntEvent] = pendingEvents.toList
 
-  def delete() = {
+  def delete(): Unit = {
     applyPendingEvent(TrainingToHuntDeleted(id))
   }
 }

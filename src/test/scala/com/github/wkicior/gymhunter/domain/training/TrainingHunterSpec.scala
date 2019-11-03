@@ -23,24 +23,18 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
   val vacantTrainingManagerProbe = TestProbe()
 
   val trainingFetcherProps = Props(new Actor {
-    def receive = {
-      case x => {
-        trainingFetcherProbe.ref forward x
-      }
+    def receive: PartialFunction[Any, Unit] = {
+      case x => trainingFetcherProbe.ref forward x
     }
   })
   val trainingToHuntFetcherProps = Props(new Actor {
-    def receive = {
-      case x => {
-        trainingToHuntFetcherProbe.ref forward x
-      }
+    def receive: PartialFunction[Any, Unit] = {
+      case x => trainingToHuntFetcherProbe.ref forward x
     }
   })
   val vacantTrainingManagerProps = Props(new Actor {
-    def receive = {
-      case x => {
-        vacantTrainingManagerProbe.ref forward x
-      }
+    def receive: PartialFunction[Any, Unit] = {
+      case x => vacantTrainingManagerProbe.ref forward x
     }
   })
 

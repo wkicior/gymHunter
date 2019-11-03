@@ -9,7 +9,7 @@ import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.Proces
 import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntProvider}
 
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.language.postfixOps
 
 
@@ -24,28 +24,28 @@ object TrainingHunter {
 class TrainingHunter(trainingToHuntProviderProps: Props, trainingFetcherProps: Props, vacantTrainingManagerProps: Props) extends Actor with ActorLogging {
   import TrainingHunter._
   import TrainingToHuntProvider._
-  implicit val ec = ExecutionContext.global
+  implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 
   val trainingToHuntProvider: ActorRef = context.actorOf(trainingToHuntProviderProps, "trainingToHuntProvider")
   val trainingFetcher: ActorRef = context.actorOf(RoundRobinPool(8).props(trainingFetcherProps), "trainingFetcher")
   val vacantTrainingManager: ActorRef = context.actorOf(RoundRobinPool(5).props(vacantTrainingManagerProps), "vacantTrainingManager")
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case Hunt() =>
       log.info("hunting begins...")
-      getTrackedTrainings()
+      getTrackedTrainings
         .map(trainings => trainings.map(training => getTraining(training.externalSystemId)))
         .flatMap(trainingFutures => Future.sequence(trainingFutures))
         .foreach(trainings => {
           trainings
-            .filter(training => training.canBeBooked())
+            .filter(training => training.canBeBooked)
             .foreach(training =>  vacantTrainingManager ! ProcessVacantTraining(training))
         })
     case _ =>
       log.error("unrecognized message")
   }
 
-  private def getTrackedTrainings(): Future[Set[TrainingToHunt]] = {
+  private def getTrackedTrainings: Future[Set[TrainingToHunt]] = {
     implicit val timeout: Timeout = Timeout(5 seconds)
     ask(trainingToHuntProvider, GetTrainingsToHuntQuery()).mapTo[Set[TrainingToHunt]]
   }

@@ -11,7 +11,7 @@ class TrainingSpec extends WordSpec with Matchers {
   "A Training" should {
     "not to be booked if there are no slots available" in {
       val training = Training(0, 0, OffsetDateTime.now(), OffsetDateTime.now().plusMinutes(2))
-      training.canBeBooked() shouldBe false
+      training.canBeBooked shouldBe false
     }
 
     """be booked if there are slots available
@@ -19,7 +19,7 @@ class TrainingSpec extends WordSpec with Matchers {
       |and start date has not passed yet
     """.stripMargin in {
       val training = Training(0, 1, OffsetDateTime.now(), OffsetDateTime.now().plusMinutes(2))
-      training.canBeBooked() shouldBe true
+      training.canBeBooked shouldBe true
     }
 
     """not to be booked if bookings are not opened yet
@@ -27,7 +27,7 @@ class TrainingSpec extends WordSpec with Matchers {
       |and start date has not passed yet
     """.stripMargin in {
       val training = Training(0, 16, OffsetDateTime.now().plusHours(1), OffsetDateTime.now().plusMinutes(2))
-      training.canBeBooked() shouldBe false
+      training.canBeBooked shouldBe false
     }
 
     """not to be booked if start date time has passed
@@ -35,7 +35,7 @@ class TrainingSpec extends WordSpec with Matchers {
       |and date for bookings opened has passed
     """.stripMargin in {
       val training = Training(0, 16, OffsetDateTime.now(), OffsetDateTime.now().minusSeconds(1))
-      training.canBeBooked() shouldBe false
+      training.canBeBooked shouldBe false
     }
   }
 }

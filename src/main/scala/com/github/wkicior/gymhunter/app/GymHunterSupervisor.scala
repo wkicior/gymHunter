@@ -17,7 +17,7 @@ class GymHunterSupervisor(trainingToHuntRepository: ActorRef) extends Actor with
 
   val trainingHunter: ActorRef = context.actorOf(TrainingHunter.props(trainingToHuntRepository), "trainingHunter")
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case RunGymHunting() =>
       trainingHunter ! Hunt()
   }
