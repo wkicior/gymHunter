@@ -10,7 +10,8 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.wkicior.gymhunter.domain.notification.{IFTTNotification, Notification}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.CreateTrainingToHuntCommand
 import com.github.wkicior.gymhunter.domain.training.tohunt._
-import com.github.wkicior.gymhunter.domain.training.{Training, TrainingResponse}
+import com.github.wkicior.gymhunter.domain.training.Training
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.{GymsteerTrainingFetcher, TrainingResponse}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -37,10 +38,11 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
   private val wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(port))
 
   private val trainingToHuntEventStore = system.actorOf(TrainingToHuntEventStore.props, "TrainingToHuntEventStore")
+  private val trainingFetcher = system.actorOf(GymsteerTrainingFetcher.props, "GymsteerTrainingFetcher")
   private val trainingToHuntCommandHandler = system.actorOf(TrainingToHuntCommandHandler.props(trainingToHuntEventStore))
 
 
-  private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(trainingToHuntEventStore), "GymHunterSupervisorIntegrationTest")
+  private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(trainingToHuntEventStore, trainingFetcher), "GymHunterSupervisorIntegrationTest")
 
   "A GymHunterSupervisor Actor" should {
     """get all trainings to hunt

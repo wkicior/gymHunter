@@ -1,4 +1,4 @@
-package com.github.wkicior.gymhunter.domain.training
+package com.github.wkicior.gymhunter.infrastructure.gymsteer
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.http.scaladsl.Http
@@ -6,19 +6,18 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import com.github.wkicior.gymhunter.app.{Settings, SettingsImpl}
+import com.github.wkicior.gymhunter.domain.training.{GetTraining, Training}
 
 import scala.concurrent.Future
 import scala.language.postfixOps
 
 case class TrainingResponse(training: Training)
 
-object TrainingFetcher {
-  def props: Props = Props[TrainingFetcher]
-  final case class GetTraining(id: Long)
+object GymsteerTrainingFetcher {
+  def props: Props = Props[GymsteerTrainingFetcher]
 }
 
-class TrainingFetcher extends Actor with ActorLogging {
-  import TrainingFetcher._
+class GymsteerTrainingFetcher extends Actor with ActorLogging {
   import akka.pattern.pipe
   import com.github.wkicior.gymhunter.app.JsonProtocol._
   import context.dispatcher

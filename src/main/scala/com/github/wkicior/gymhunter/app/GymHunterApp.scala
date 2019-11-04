@@ -3,9 +3,11 @@ package com.github.wkicior.gymhunter.app
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import akka.http.scaladsl.Http
+import akka.routing.RoundRobinPool
 import akka.stream.ActorMaterializer
 import com.github.wkicior.gymhunter.app.GymHunterSupervisor.RunGymHunting
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerTrainingFetcher
 import com.github.wkicior.gymhunter.web.RestApi
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 
@@ -21,7 +23,8 @@ object GymHunterApp extends App {
   log.info("Initializing GymHunter Supervisor Scheduler...")
   val scheduler = QuartzSchedulerExtension(system)
   val trainingToHuntEventStore = system.actorOf(TrainingToHuntEventStore.props, "TrainingToHuntEventStore")
-  val supervisor: ActorRef = system.actorOf(GymHunterSupervisor.props(trainingToHuntEventStore), "GymHunterSupervisor")
+  val gymsteerTrainingFetcher = system.actorOf(RoundRobinPool(8).props(GymsteerTrainingFetcher.props), "GymsteerTrainingFetcher")
+  val supervisor: ActorRef = system.actorOf(GymHunterSupervisor.props(trainingToHuntEventStore, gymsteerTrainingFetcher), "GymHunterSupervisor")
   scheduler.schedule("GymHunterSupervisorScheduler", supervisor, RunGymHunting())
 
   val api = new RestApi(system, trainingToHuntEventStore).routes

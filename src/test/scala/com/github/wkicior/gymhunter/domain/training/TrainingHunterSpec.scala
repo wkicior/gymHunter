@@ -27,6 +27,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       case x => trainingFetcherProbe.ref forward x
     }
   })
+
   val trainingToHuntFetcherProps = Props(new Actor {
     def receive: PartialFunction[Any, Unit] = {
       case x => trainingToHuntProviderProbe.ref forward x
@@ -38,7 +39,8 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
     }
   })
 
-  private val trainingHunter = system.actorOf(TrainingHunter.props(trainingToHuntFetcherProps, trainingFetcherProps, vacantTrainingManagerProps))
+  private val trainingFetcher = system.actorOf(trainingFetcherProps)
+  private val trainingHunter = system.actorOf(TrainingHunter.props(trainingToHuntFetcherProps, trainingFetcher, vacantTrainingManagerProps))
 
   "A TrainingHunter Actor" should {
     """ask trainingFetcher for all tracked training ids
@@ -74,7 +76,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
       trainingToHuntProviderProbe.reply(Set(TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now)))
 
-      trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
+      trainingFetcherProbe.expectMsg(GetTraining(42L))
       trainingFetcherProbe.reply(sampleNonVacantTraining)
 
       vacantTrainingManagerProbe.expectNoMessage()
@@ -95,7 +97,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
       trainingToHuntProviderProbe.reply(Set(TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now)))
 
-      trainingFetcherProbe.expectMsg(TrainingFetcher.GetTraining(42L))
+      trainingFetcherProbe.expectMsg(GetTraining(42L))
       trainingFetcherProbe.reply(sampleVacantTraining)
 
       vacantTrainingManagerProbe.expectMsg(VacantTrainingManager.ProcessVacantTraining(sampleVacantTraining))
