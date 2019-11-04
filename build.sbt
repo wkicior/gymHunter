@@ -17,5 +17,6 @@ libraryDependencies ++= Seq(
   "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",
   "org.scalatest" %% "scalatest" % "3.0.8" % "test",
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.9",
-  "com.enragedginger" %% "akka-quartz-scheduler" % "1.8.1-akka-2.5.x"
+  "com.enragedginger" %% "akka-quartz-scheduler" % "1.8.1-akka-2.5.x",
+  "com.github.tomakehurst" % "wiremock" % "2.25.1" % Test
 )

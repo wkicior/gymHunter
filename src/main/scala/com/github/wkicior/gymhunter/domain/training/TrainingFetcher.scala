@@ -5,6 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
+import com.github.wkicior.gymhunter.app.{Settings, SettingsImpl}
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -24,14 +25,15 @@ class TrainingFetcher extends Actor with ActorLogging {
 
   implicit val system: ActorSystem = ActorSystem("GymHunter")
   implicit val mat: ActorMaterializer = ActorMaterializer()(context)
+  val settings: SettingsImpl = Settings(context.system)
 
   def receive: PartialFunction[Any, Unit] = {
     case GetTraining(id) =>
-      val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = "https://api.gymsteer.com/api/clubs/8/trainings/" + id))
+      val responseFuture: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = s"${settings.gymsteerHost}/api/clubs/8/trainings/$id"))
       responseFuture
         .flatMap {
           case response@HttpResponse(StatusCodes.OK, _, _, _) =>
-            val x = response.discardEntityBytes()
+            //val x = response.discardEntityBytes()
             Unmarshal(response).to[TrainingResponse]
           case _ => sys.error("something wrong")
         }

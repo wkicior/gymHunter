@@ -4,7 +4,8 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 import akka.event.jul.Logger
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent}
+import com.github.wkicior.gymhunter.app.es.EventSourced
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent, TrainingToHuntNotificationSent}
 
 import scala.collection.mutable.ListBuffer
 
@@ -21,17 +22,23 @@ object TrainingToHuntId {
 case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime)
 
 object TrainingToHuntAggregate {
-  sealed trait TrainingToHuntEvent {
+  sealed trait TrainingToHuntEvent extends EventSourced {
     val id: TrainingToHuntId
+    override def createdDateTime: OffsetDateTime = {
+      super.createdDateTime
+    }
   }
   final case class TrainingToHuntAdded(id: TrainingToHuntId, externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime) extends TrainingToHuntEvent
   final case class TrainingToHuntDeleted(id: TrainingToHuntId) extends TrainingToHuntEvent
+  final case class TrainingToHuntNotificationSent(id: TrainingToHuntId) extends TrainingToHuntEvent {
+
+  }
 }
 
 case class TrainingToHuntAggregate(id: TrainingToHuntId, externalSystemId: Long, clubId: Long) {
-
   val logger = Logger("name")
   var huntingEndTime: OffsetDateTime = OffsetDateTime.now()
+  var notificationOnSlotsAvailableSentTime: OffsetDateTime = _
 
   private var pendingEvents = ListBuffer[TrainingToHuntEvent]()
 
@@ -54,6 +61,7 @@ case class TrainingToHuntAggregate(id: TrainingToHuntId, externalSystemId: Long,
   def apply(trainingToHuntEvent: TrainingToHuntEvent): TrainingToHuntAggregate = {
     trainingToHuntEvent match {
       case deleted: TrainingToHuntDeleted => logger.info(s"TrainingToHunt deleted ${deleted.id}")
+      case notificationSent: TrainingToHuntNotificationSent => this.notificationOnSlotsAvailableSentTime = notificationSent.createdDateTime
       case event => logger.warning(s"unrecognized event: $event")
     }
     this
@@ -67,6 +75,10 @@ case class TrainingToHuntAggregate(id: TrainingToHuntId, externalSystemId: Long,
 
   def delete(): Unit = {
     applyPendingEvent(TrainingToHuntDeleted(id))
+  }
+
+  def notifyOnSlotsAvailable(): Unit = {
+    applyPendingEvent(TrainingToHuntNotificationSent(id))
   }
 }
 

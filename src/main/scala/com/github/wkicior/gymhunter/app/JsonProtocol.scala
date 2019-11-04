@@ -4,6 +4,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import com.github.wkicior.gymhunter.domain.notification.{IFTTNotification, IFTTNotifier}
 import com.github.wkicior.gymhunter.domain.training._
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.CreateTrainingToHuntCommand
 import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntId}
@@ -32,4 +33,5 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
   implicit val trainingResponseFormat: RootJsonFormat[TrainingResponse] = jsonFormat1(TrainingResponse)
   implicit val trainingToHuntFormat: RootJsonFormat[TrainingToHunt] = jsonFormat4(TrainingToHunt)
   implicit val trainingToHuntRequestFormat: RootJsonFormat[CreateTrainingToHuntCommand] = jsonFormat3(CreateTrainingToHuntCommand)
+  implicit val ifttNotificationFormat: RootJsonFormat[IFTTNotification] = jsonFormat2(IFTTNotification)
 }

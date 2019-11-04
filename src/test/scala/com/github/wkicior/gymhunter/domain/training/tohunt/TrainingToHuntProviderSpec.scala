@@ -1,8 +1,11 @@
 package com.github.wkicior.gymhunter.domain.training.tohunt
 
+import java.time.OffsetDateTime
+
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntProvider.GetTrainingsToHuntQuery
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.OptionalTrainingToHunt
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntProvider.{GetTrainingToHuntQuery, GetTrainingsToHuntByTrainingIdQuery, GetTrainingsToHuntQuery}
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -29,7 +32,7 @@ class TrainingToHuntProviderSpec(_system: ActorSystem) extends TestKit(_system) 
   "A TrainingToHuntProvider Actor" should {
     "return active trainings to hunt from the event store" in {
       //given
-      val trainingToHunt = TrainingToHuntAggregate(TrainingToHuntId(), 1L, 2L)
+      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now())
       //when
       trainingToHuntProvider.tell(GetTrainingsToHuntQuery(), probe.ref)
 
@@ -38,7 +41,38 @@ class TrainingToHuntProviderSpec(_system: ActorSystem) extends TestKit(_system) 
       trainingToHuntEventStoreProbe.reply(Set(trainingToHunt))
 
       val response = probe.expectMsgType[Set[TrainingToHunt]]
-      response should contain only trainingToHunt()
+      response should contain only trainingToHunt
+    }
+
+    "return trainings to hunt by external system training Id" in {
+      //given
+      val trainingToHuntMatched = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now())
+      val trainingToHuntNotMatched = TrainingToHunt(TrainingToHuntId(), 2L, 2L, OffsetDateTime.now())
+      //when
+      trainingToHuntProvider.tell(GetTrainingsToHuntByTrainingIdQuery(1L), probe.ref)
+
+      //then
+      trainingToHuntEventStoreProbe.expectMsgType[TrainingToHuntEventStore.GetAllTrainingsToHunt]
+      trainingToHuntEventStoreProbe.reply(Set(trainingToHuntMatched, trainingToHuntNotMatched))
+
+      val response = probe.expectMsgType[Set[TrainingToHunt]]
+      response should contain only trainingToHuntMatched
+    }
+
+    "return training to hunt by Id" in {
+      //given
+      val id = TrainingToHuntId()
+      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now())
+
+      //when
+      trainingToHuntProvider.tell(GetTrainingToHuntQuery(id), probe.ref)
+
+      //then
+      trainingToHuntEventStoreProbe.expectMsg(TrainingToHuntEventStore.GetTrainingToHunt(id))
+      trainingToHuntEventStoreProbe.reply(Right(trainingToHunt))
+
+      val response = probe.expectMsgType[OptionalTrainingToHunt[TrainingToHunt]]
+      response shouldEqual Right(trainingToHunt)
     }
   }
 }
