@@ -44,7 +44,7 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
       //given
       val probe = TestProbe()
       val training = Training(1, 1, OffsetDateTime.now(), OffsetDateTime.now().plusDays(2))
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 1L, OffsetDateTime.now().plusDays(1))
+      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 1L, OffsetDateTime.now().plusDays(1), None)
 
       //when
       trainingHunter.tell(ProcessVacantTraining(training), probe.ref)

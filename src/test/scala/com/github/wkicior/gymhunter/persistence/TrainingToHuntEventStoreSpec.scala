@@ -1,11 +1,13 @@
-package com.github.wkicior.gymhunter.domain.training.tohunt
+package com.github.wkicior.gymhunter.persistence
 
 import java.time.OffsetDateTime
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestProbe}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore._
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence._
+import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntAggregate, TrainingToHuntId}
+import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingToHuntEventStore
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -24,7 +26,7 @@ class TrainingToHuntEventStoreSpec(_system: ActorSystem) extends TestKit(_system
   "A TrainingToHuntEventStore Actor" should {
     "return initially empty trainings to hunt" in {
 
-      trainingToHuntEventStore.tell(TrainingToHuntEventStore.GetAllTrainingsToHunt(), probe.ref)
+      trainingToHuntEventStore.tell(GetAllTrainingsToHunt(), probe.ref)
       val response = probe.expectMsgType[Set[TrainingToHunt]]
       response.size shouldEqual 0
     }
@@ -45,7 +47,7 @@ class TrainingToHuntEventStoreSpec(_system: ActorSystem) extends TestKit(_system
           clubId shouldEqual 2L
       }
 
-      trainingToHuntEventStore.tell(TrainingToHuntEventStore.GetAllTrainingsToHunt(), probe.ref)
+      trainingToHuntEventStore.tell(GetAllTrainingsToHunt(), probe.ref)
       val getAllResponse = probe.expectMsgType[Set[TrainingToHunt]]
       getAllResponse.find(t => t.id == trainingToHuntAddedEvent.id) shouldBe defined
     }
@@ -63,7 +65,7 @@ class TrainingToHuntEventStoreSpec(_system: ActorSystem) extends TestKit(_system
     //then
     response.isLeft shouldEqual true
 
-    trainingToHuntEventStore.tell(TrainingToHuntEventStore.GetAllTrainingsToHunt(), probe.ref)
+    trainingToHuntEventStore.tell(GetAllTrainingsToHunt(), probe.ref)
     val getAllResponse = probe.expectMsgType[Set[TrainingToHunt]]
     getAllResponse.find(t => t.id == trainingToHuntAddedEvent.id) shouldBe None
   }

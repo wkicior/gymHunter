@@ -6,7 +6,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.{CreateTrainingToHuntCommand, DeleteTrainingToHuntCommand, NotifyOnSlotsAvailable}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.{GetTrainingToHuntAggregate, OptionalTrainingToHunt, StoreEvents}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence.{GetTrainingToHuntAggregate, OptionalTrainingToHunt, StoreEvents}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}

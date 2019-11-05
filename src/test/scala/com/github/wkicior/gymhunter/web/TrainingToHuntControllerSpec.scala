@@ -6,7 +6,8 @@ import java.util.UUID
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.CreateTrainingToHuntCommand
-import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntEventStore}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHunt
+import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingToHuntEventStore
 import org.scalatest.{Inside, Matchers, WordSpec}
 
 class TrainingToHuntControllerSpec extends WordSpec with Matchers with ScalatestRouteTest with Inside {
@@ -28,11 +29,12 @@ class TrainingToHuntControllerSpec extends WordSpec with Matchers with Scalatest
       Post("/api/trainings-to-hunt", CreateTrainingToHuntCommand(123, 8, endOfHuntDatetime)) ~> routes ~> check {
         status shouldEqual StatusCodes.CREATED
         val trainingToHunt = responseAs[TrainingToHunt]
-        inside(trainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId, huntingEndTime) =>
+        inside(trainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime) =>
             id.toString should not be empty
             externalSystemId shouldEqual 123
             clubId shouldEqual 8
             huntingEndTime shouldEqual endOfHuntDatetime
+            notificationOnSlotsAvailableSentTime shouldBe None
         }
         Get("/api/trainings-to-hunt") ~> routes ~> check {
           responseAs[Seq[TrainingToHunt]] should contain (trainingToHunt)
@@ -55,11 +57,12 @@ class TrainingToHuntControllerSpec extends WordSpec with Matchers with Scalatest
         Delete(s"/api/trainings-to-hunt/${trainingToHunt.id}") ~> routes ~> check {
           status shouldEqual StatusCodes.OK
           val deletedTrainingToHunt = responseAs[TrainingToHunt]
-          inside(deletedTrainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId, huntingEndTime) =>
+          inside(deletedTrainingToHunt) { case TrainingToHunt(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime) =>
             id.toString should not be empty
             externalSystemId shouldEqual 124
             clubId shouldEqual 8
             huntingEndTime shouldEqual endOfHuntDatetime
+            notificationOnSlotsAvailableSentTime shouldBe None
           }
 
           Get("/api/trainings-to-hunt") ~> routes ~> check {

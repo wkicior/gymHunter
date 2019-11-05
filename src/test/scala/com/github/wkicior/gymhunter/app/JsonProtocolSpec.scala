@@ -34,13 +34,26 @@ class JsonProtocolSpec extends WordSpec with Matchers {
       jf.write(trainingToHuntId) shouldBe trainingToHuntJson
     }
 
-    "write TrainingToHunt value to JSON" in {
-      val trainingToHunt = new TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now())
+    "write TrainingToHunt value to JSON without notificationDateTime" in {
+      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now(), None)
       val trainingToHuntJson = JsObject(
         "id" -> JsString(trainingToHunt.id.toString),
         "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
         "clubId" -> JsNumber(trainingToHunt.clubId),
         "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime)
+      )
+      val jf = implicitly[JsonFormat[TrainingToHunt]]
+      jf.write(trainingToHunt) shouldBe trainingToHuntJson
+    }
+
+    "write TrainingToHunt value to JSON with notificationDateTime" in {
+      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now, Some(OffsetDateTime.now))
+      val trainingToHuntJson = JsObject(
+        "id" -> JsString(trainingToHunt.id.toString),
+        "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
+        "clubId" -> JsNumber(trainingToHunt.clubId),
+        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime),
+        "notificationOnSlotsAvailableSentTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime)
       )
       val jf = implicitly[JsonFormat[TrainingToHunt]]
       jf.write(trainingToHunt) shouldBe trainingToHuntJson

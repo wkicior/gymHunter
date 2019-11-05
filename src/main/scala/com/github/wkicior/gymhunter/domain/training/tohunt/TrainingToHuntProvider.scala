@@ -3,7 +3,7 @@ package com.github.wkicior.gymhunter.domain.training.tohunt
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.{GetAllTrainingsToHunt, GetTrainingToHunt, OptionalTrainingToHunt}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence.{GetAllTrainingsToHunt, GetTrainingToHunt, OptionalTrainingToHunt}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
@@ -39,7 +39,7 @@ class TrainingToHuntProvider(trainingToHuntEventStore: ActorRef) extends Actor w
       implicit val timeout: Timeout = Timeout(5 seconds)
       ask(trainingToHuntEventStore, GetTrainingToHunt(id)).mapTo[OptionalTrainingToHunt[TrainingToHunt]]
         .pipeTo(sender())
-      
+
     case x =>
       log.error(s"Unrecognized message: $x")
   }

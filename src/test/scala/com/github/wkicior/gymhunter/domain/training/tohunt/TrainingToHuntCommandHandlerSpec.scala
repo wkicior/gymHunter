@@ -7,7 +7,7 @@ import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntNotificationSent}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.{CreateTrainingToHuntCommand, DeleteTrainingToHuntCommand, NotifyOnSlotsAvailable}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.{GetTrainingToHuntAggregate, OptionalTrainingToHunt, TrainingToHuntNotFound}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence.{GetTrainingToHuntAggregate, OptionalTrainingToHunt, StoreEvents, TrainingToHuntNotFound}
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -41,7 +41,7 @@ class TrainingToHuntCommandHandlerSpec(_system: ActorSystem) extends TestKit(_sy
 
       //then
       trainingToHuntEventStoreProbe.expectMsgPF() {
-        case ok@TrainingToHuntEventStore.StoreEvents(_, List(TrainingToHuntAdded(_, 1L, 2L, createTrainingToHuntCommand.huntingEndTime))) => ok
+        case ok@StoreEvents(_, List(TrainingToHuntAdded(_, 1L, 2L, createTrainingToHuntCommand.huntingEndTime))) => ok
       }
       trainingToHuntEventStoreProbe.reply(Right(sampleTrainingToHunt))
 
@@ -76,7 +76,7 @@ class TrainingToHuntCommandHandlerSpec(_system: ActorSystem) extends TestKit(_sy
       trainingToHuntEventStoreProbe.expectMsg(GetTrainingToHuntAggregate(sampleTrainingToHunt.id))
       trainingToHuntEventStoreProbe.reply(Right(sampleTrainingToHunt))
 
-      trainingToHuntEventStoreProbe.expectMsg(TrainingToHuntEventStore.StoreEvents(sampleTrainingToHunt.id, List(TrainingToHuntDeleted(sampleTrainingToHunt.id))))
+      trainingToHuntEventStoreProbe.expectMsg(StoreEvents(sampleTrainingToHunt.id, List(TrainingToHuntDeleted(sampleTrainingToHunt.id))))
       trainingToHuntEventStoreProbe.reply(Left(TrainingToHuntNotFound(sampleTrainingToHunt.id)))
 
       val response = probe.expectMsgType[OptionalTrainingToHunt[TrainingToHunt]]
@@ -95,7 +95,7 @@ class TrainingToHuntCommandHandlerSpec(_system: ActorSystem) extends TestKit(_sy
       trainingToHuntEventStoreProbe.expectMsg(GetTrainingToHuntAggregate(sampleTrainingToHunt.id))
       trainingToHuntEventStoreProbe.reply(Right(sampleTrainingToHunt))
 
-      trainingToHuntEventStoreProbe.expectMsg(TrainingToHuntEventStore.StoreEvents(sampleTrainingToHunt.id, List(TrainingToHuntNotificationSent(sampleTrainingToHunt.id))))
+      trainingToHuntEventStoreProbe.expectMsg(StoreEvents(sampleTrainingToHunt.id, List(TrainingToHuntNotificationSent(sampleTrainingToHunt.id))))
       trainingToHuntEventStoreProbe.reply(Right(sampleTrainingToHunt.id))
 
       sampleTrainingToHunt.notificationOnSlotsAvailableSentTime should be <= OffsetDateTime.now()

@@ -1,10 +1,11 @@
-package com.github.wkicior.gymhunter.domain.training.tohunt
+package com.github.wkicior.gymhunter.infrastructure.persistence
 
 import akka.actor.{ActorLogging, Props, _}
 import akka.pattern.pipe
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.{OptionalTrainingToHunt, TrainingToHuntNotFound}
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence._
+import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHuntAggregate, TrainingToHuntId}
 
 import scala.concurrent.{Future, Promise}
 import scala.language.postfixOps
@@ -12,15 +13,8 @@ import scala.language.postfixOps
 
 object TrainingToHuntEventStore {
   def props: Props = Props[TrainingToHuntEventStore]
-  final case class GetAllTrainingsToHunt()
-  final case class GetTrainingToHuntAggregate(id: TrainingToHuntId)
-  final case class GetTrainingToHunt(id: TrainingToHuntId)
-  final case class StoreEvents(id: TrainingToHuntId, events: List[TrainingToHuntEvent])
 
-  type OptionalTrainingToHunt[+A] = Either[TrainingToHuntNotFound, A]
-  final case class TrainingToHuntNotFound(id: TrainingToHuntId) extends RuntimeException(s"Training to hunt not found with id $id")
 }
-
 
 final case class State(trainingsToHunt: Map[TrainingToHuntId, TrainingToHuntAggregate] = Map.empty) {
   def apply(): Set[TrainingToHuntAggregate] = trainingsToHunt.values.toSet

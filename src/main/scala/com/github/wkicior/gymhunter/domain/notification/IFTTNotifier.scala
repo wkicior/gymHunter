@@ -6,8 +6,8 @@ import akka.util.Timeout
 import com.github.wkicior.gymhunter.domain.training.Training
 import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntId, TrainingToHuntProvider}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.TrainingToHuntNotificationSent
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.OptionalTrainingToHunt
 import akka.pattern.ask
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence.OptionalTrainingToHunt
 
 import scala.concurrent.duration._
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntProvider.GetTrainingToHuntQuery

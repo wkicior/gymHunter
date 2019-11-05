@@ -19,7 +19,7 @@ object TrainingToHuntId {
   def apply(id: String): TrainingToHuntId = new TrainingToHuntId(UUID.fromString(id))
 }
 
-case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime)
+case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime, notificationOnSlotsAvailableSentTime: Option[OffsetDateTime] = None)
 
 object TrainingToHuntAggregate {
   sealed trait TrainingToHuntEvent extends EventSourced {

@@ -32,7 +32,7 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
 
   implicit val trainingFormat: RootJsonFormat[Training] = jsonFormat4(Training)
   implicit val trainingResponseFormat: RootJsonFormat[TrainingResponse] = jsonFormat1(TrainingResponse)
-  implicit val trainingToHuntFormat: RootJsonFormat[TrainingToHunt] = jsonFormat4(TrainingToHunt)
+  implicit val trainingToHuntFormat: RootJsonFormat[TrainingToHunt] = jsonFormat5(TrainingToHunt)
   implicit val trainingToHuntRequestFormat: RootJsonFormat[CreateTrainingToHuntCommand] = jsonFormat3(CreateTrainingToHuntCommand)
   implicit val ifttNotificationFormat: RootJsonFormat[IFTTNotification] = jsonFormat2(IFTTNotification)
 }

@@ -4,7 +4,7 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntEventStore.OptionalTrainingToHunt
+import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence.{GetAllTrainingsToHunt, GetTrainingToHunt, OptionalTrainingToHunt}
 import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntProvider.{GetTrainingToHuntQuery, GetTrainingsToHuntByTrainingIdQuery, GetTrainingsToHuntQuery}
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
@@ -32,12 +32,12 @@ class TrainingToHuntProviderSpec(_system: ActorSystem) extends TestKit(_system) 
   "A TrainingToHuntProvider Actor" should {
     "return active trainings to hunt from the event store" in {
       //given
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now())
+      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now(), None)
       //when
       trainingToHuntProvider.tell(GetTrainingsToHuntQuery(), probe.ref)
 
       //then
-      trainingToHuntEventStoreProbe.expectMsgType[TrainingToHuntEventStore.GetAllTrainingsToHunt]
+      trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt]
       trainingToHuntEventStoreProbe.reply(Set(trainingToHunt))
 
       val response = probe.expectMsgType[Set[TrainingToHunt]]
@@ -52,7 +52,7 @@ class TrainingToHuntProviderSpec(_system: ActorSystem) extends TestKit(_system) 
       trainingToHuntProvider.tell(GetTrainingsToHuntByTrainingIdQuery(1L), probe.ref)
 
       //then
-      trainingToHuntEventStoreProbe.expectMsgType[TrainingToHuntEventStore.GetAllTrainingsToHunt]
+      trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt]
       trainingToHuntEventStoreProbe.reply(Set(trainingToHuntMatched, trainingToHuntNotMatched))
 
       val response = probe.expectMsgType[Set[TrainingToHunt]]
@@ -68,7 +68,7 @@ class TrainingToHuntProviderSpec(_system: ActorSystem) extends TestKit(_system) 
       trainingToHuntProvider.tell(GetTrainingToHuntQuery(id), probe.ref)
 
       //then
-      trainingToHuntEventStoreProbe.expectMsg(TrainingToHuntEventStore.GetTrainingToHunt(id))
+      trainingToHuntEventStoreProbe.expectMsg(GetTrainingToHunt(id))
       trainingToHuntEventStoreProbe.reply(Right(trainingToHunt))
 
       val response = probe.expectMsgType[OptionalTrainingToHunt[TrainingToHunt]]

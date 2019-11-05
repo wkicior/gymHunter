@@ -12,6 +12,7 @@ import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommand
 import com.github.wkicior.gymhunter.domain.training.tohunt._
 import com.github.wkicior.gymhunter.domain.training.Training
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.{GymsteerTrainingFetcher, TrainingResponse}
+import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingToHuntEventStore
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
