@@ -6,7 +6,7 @@ import akka.routing.RoundRobinPool
 import akka.util.Timeout
 
 import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.ProcessVacantTraining
-import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntProvider}
+import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntProvider}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
@@ -14,8 +14,8 @@ import scala.language.postfixOps
 
 
 object TrainingHunter {
-  def props(trainingToHuntEventStore: ActorRef, trainingFetcher: ActorRef): Props = Props(new TrainingHunter(TrainingToHuntProvider.props(trainingToHuntEventStore), trainingFetcher, VacantTrainingManager.props(trainingToHuntEventStore)))
-  def props(trainingHunterProps: Props, trainingFetcher: ActorRef, vacantTrainingManagerProps: Props): Props = Props(
+  private [gymhunter] def props(trainingToHuntEventStore: ActorRef, trainingFetcher: ActorRef): Props = Props(new TrainingHunter(TrainingToHuntProvider.props(trainingToHuntEventStore), trainingFetcher, VacantTrainingManager.props(trainingToHuntEventStore)))
+  private [training] def props(trainingHunterProps: Props, trainingFetcher: ActorRef, vacantTrainingManagerProps: Props): Props = Props(
     new TrainingHunter(trainingHunterProps, trainingFetcher, vacantTrainingManagerProps)
   )
   final case class Hunt()

@@ -1,9 +1,10 @@
-package com.github.wkicior.gymhunter.domain.training.tohunt
+package com.github.wkicior.gymhunter.domain.tohunt
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence.{GetAllTrainingsToHunt, GetTrainingToHunt, OptionalTrainingToHunt}
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.{GetAllTrainingsToHunt, GetTrainingToHunt}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}

@@ -1,11 +1,11 @@
-package com.github.wkicior.gymhunter.domain.training.tohunt
+package com.github.wkicior.gymhunter.domain.tohunt
 
 import java.time.OffsetDateTime
 import java.util.UUID
 
 import akka.event.jul.Logger
 import com.github.wkicior.gymhunter.app.es.EventSourced
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent, TrainingToHuntNotificationSent}
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent, TrainingToHuntNotificationSent}
 
 import scala.collection.mutable.ListBuffer
 
@@ -13,10 +13,14 @@ class TrainingToHuntId(val id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }
 
+final case class TrainingToHuntNotFound(id: TrainingToHuntId) extends RuntimeException(s"Training to hunt not found with id $id")
+
 object TrainingToHuntId {
   def apply(): TrainingToHuntId = new TrainingToHuntId(UUID.randomUUID())
   def apply(id: UUID): TrainingToHuntId = new TrainingToHuntId(id)
   def apply(id: String): TrainingToHuntId = new TrainingToHuntId(UUID.fromString(id))
+
+  type OptionalTrainingToHunt[+A] = Either[TrainingToHuntNotFound, A]
 }
 
 case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime, notificationOnSlotsAvailableSentTime: Option[OffsetDateTime] = None)

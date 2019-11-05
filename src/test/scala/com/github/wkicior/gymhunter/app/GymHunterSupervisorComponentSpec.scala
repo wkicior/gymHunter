@@ -4,8 +4,8 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence.GetAllTrainingsToHunt
-import com.github.wkicior.gymhunter.domain.training.tohunt._
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.GetAllTrainingsToHunt
+import com.github.wkicior.gymhunter.domain.tohunt._
 import com.github.wkicior.gymhunter.domain.training.{GetTraining, Training}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 

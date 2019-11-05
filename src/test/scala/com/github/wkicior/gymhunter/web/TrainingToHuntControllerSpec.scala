@@ -5,8 +5,8 @@ import java.util.UUID
 
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.CreateTrainingToHuntCommand
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHunt
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntCommandHandler.CreateTrainingToHuntCommand
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHunt
 import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingToHuntEventStore
 import org.scalatest.{Inside, Matchers, WordSpec}
 

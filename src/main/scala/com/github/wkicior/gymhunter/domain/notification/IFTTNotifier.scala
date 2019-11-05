@@ -2,16 +2,15 @@ package com.github.wkicior.gymhunter.domain.notification
 
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.training.Training
-import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntId, TrainingToHuntProvider}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.TrainingToHuntNotificationSent
 import akka.pattern.ask
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence.OptionalTrainingToHunt
+import akka.util.Timeout
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntAggregate.TrainingToHuntNotificationSent
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntProvider.GetTrainingToHuntQuery
+import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntId, TrainingToHuntProvider}
+import com.github.wkicior.gymhunter.domain.training.Training
 
 import scala.concurrent.duration._
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntProvider.GetTrainingToHuntQuery
-
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.language.postfixOps
 
@@ -23,7 +22,6 @@ object IFTTNotifier {
 }
 
 class IFTTNotifier(trainingToHuntProviderProps: Props) extends Actor with ActorLogging {
-  import IFTTNotifier._
 
   override def preStart(): Unit = context.system.eventStream.subscribe(self, classOf[TrainingToHuntNotificationSent])
 

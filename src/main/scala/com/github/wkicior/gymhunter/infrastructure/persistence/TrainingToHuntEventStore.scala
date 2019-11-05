@@ -3,9 +3,10 @@ package com.github.wkicior.gymhunter.infrastructure.persistence
 import akka.actor.{ActorLogging, Props, _}
 import akka.pattern.pipe
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence._
-import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHuntAggregate, TrainingToHuntId}
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent}
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence._
+import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHuntAggregate, TrainingToHuntId, TrainingToHuntNotFound}
 
 import scala.concurrent.{Future, Promise}
 import scala.language.postfixOps
@@ -29,7 +30,6 @@ final case class State(trainingsToHunt: Map[TrainingToHuntId, TrainingToHuntAggr
 }
 
 class TrainingToHuntEventStore extends PersistentActor with ActorLogging {
-  import TrainingToHuntEventStore._
   import context._
 
   override def persistenceId = "training-to-hunt-id-1"

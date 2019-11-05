@@ -8,10 +8,10 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.{CreateTrainingToHuntCommand, DeleteTrainingToHuntCommand}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence.OptionalTrainingToHunt
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntProvider.GetTrainingsToHuntQuery
-import com.github.wkicior.gymhunter.domain.training.tohunt._
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntCommandHandler.{CreateTrainingToHuntCommand, DeleteTrainingToHuntCommand}
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntProvider.GetTrainingsToHuntQuery
+import com.github.wkicior.gymhunter.domain.tohunt._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._

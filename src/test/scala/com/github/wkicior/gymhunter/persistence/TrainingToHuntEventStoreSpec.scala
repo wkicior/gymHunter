@@ -4,9 +4,10 @@ import java.time.OffsetDateTime
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence._
-import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntAggregate, TrainingToHuntId}
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted}
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence._
+import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntAggregate, TrainingToHuntId, TrainingToHuntNotFound}
 import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingToHuntEventStore
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 

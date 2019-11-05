@@ -1,11 +1,12 @@
-package com.github.wkicior.gymhunter.domain.training.tohunt
+package com.github.wkicior.gymhunter.domain.tohunt
 
 import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntPersistence.{GetAllTrainingsToHunt, GetTrainingToHunt, OptionalTrainingToHunt}
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntProvider.{GetTrainingToHuntQuery, GetTrainingsToHuntByTrainingIdQuery, GetTrainingsToHuntQuery}
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.{GetAllTrainingsToHunt, GetTrainingToHunt}
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntProvider.{GetTrainingToHuntQuery, GetTrainingsToHuntByTrainingIdQuery, GetTrainingsToHuntQuery}
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
 import scala.language.postfixOps

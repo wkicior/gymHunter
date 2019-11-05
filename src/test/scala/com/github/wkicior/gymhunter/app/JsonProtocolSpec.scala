@@ -2,7 +2,7 @@ package com.github.wkicior.gymhunter.app
 
 import java.time.{OffsetDateTime, ZoneOffset}
 
-import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntId}
+import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntId}
 import org.scalatest._
 import spray.json.{JsNumber, JsObject, JsString, JsonFormat}
 

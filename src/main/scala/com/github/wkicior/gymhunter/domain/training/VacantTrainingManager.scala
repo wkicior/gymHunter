@@ -1,18 +1,16 @@
 package com.github.wkicior.gymhunter.domain.training
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.pattern.ask
 import akka.util.Timeout
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntProvider.GetTrainingsToHuntByTrainingIdQuery
+import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntCommandHandler, TrainingToHuntProvider}
 
 import scala.concurrent.duration._
-import akka.pattern.ask
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.NotifyOnSlotsAvailable
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntProvider.GetTrainingsToHuntByTrainingIdQuery
-import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntCommandHandler, TrainingToHuntProvider}
-
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.language.postfixOps
 
-object VacantTrainingManager {
+private [training] object VacantTrainingManager {
   def props(trainingToHuntEventStore: ActorRef): Props = Props(new VacantTrainingManager(TrainingToHuntProvider.props(trainingToHuntEventStore), TrainingToHuntCommandHandler.props(trainingToHuntEventStore)))
   def props(trainingToHuntProviderProps: Props, trainingToHuntCommandHandlerProps: Props): Props = Props(new VacantTrainingManager(trainingToHuntProviderProps, trainingToHuntCommandHandlerProps)
   )
@@ -33,7 +31,7 @@ class VacantTrainingManager(trainingToHuntProviderProps: Props, trainingToHuntCo
       getTrainingsToHunt(training.id)
         .foreach(trainings =>
           trainings
-            .foreach(t => trainingToHuntCommandHandler ! NotifyOnSlotsAvailable(t.id)))
+            .foreach(t => context.system.eventStream.publish(TrainingSlotsAvailableEvent(t.id))))
   }
 
   private def getTrainingsToHunt(trainingId: Long): Future[Set[TrainingToHunt]] = {

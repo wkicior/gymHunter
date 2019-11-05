@@ -5,13 +5,11 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
+import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntId, TrainingToHuntProvider}
 import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.ProcessVacantTraining
-import com.github.wkicior.gymhunter.domain.training.tohunt.TrainingToHuntCommandHandler.NotifyOnSlotsAvailable
-import com.github.wkicior.gymhunter.domain.training.tohunt.{TrainingToHunt, TrainingToHuntId, TrainingToHuntProvider}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
-
 
 class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) with Matchers with WordSpecLike with BeforeAndAfterAll {
 
@@ -45,6 +43,7 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
       val probe = TestProbe()
       val training = Training(1, 1, OffsetDateTime.now(), OffsetDateTime.now().plusDays(2))
       val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 1L, OffsetDateTime.now().plusDays(1), None)
+      system.eventStream.subscribe(probe.ref, classOf[TrainingSlotsAvailableEvent])
 
       //when
       trainingHunter.tell(ProcessVacantTraining(training), probe.ref)
@@ -53,7 +52,7 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
       trainingToHuntProviderProbe.expectMsg(TrainingToHuntProvider.GetTrainingsToHuntByTrainingIdQuery(training.id))
       trainingToHuntProviderProbe.reply(Set(trainingToHunt))
 
-      trainingToHuntCommandHandlerProbe.expectMsg(NotifyOnSlotsAvailable(trainingToHunt.id))
+      probe.expectMsg(TrainingSlotsAvailableEvent(trainingToHunt.id))
     }
   }
 }
