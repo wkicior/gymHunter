@@ -4,11 +4,11 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import com.github.wkicior.gymhunter.domain.notification.IFTTNotification
 import com.github.wkicior.gymhunter.domain.training._
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntCommandHandler.CreateTrainingToHuntCommand
 import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntId}
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.TrainingResponse
+import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
 import spray.json.{JsString, JsValue, _}
 
 object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {

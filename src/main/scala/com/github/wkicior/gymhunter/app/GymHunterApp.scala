@@ -7,6 +7,7 @@ import akka.routing.RoundRobinPool
 import akka.stream.ActorMaterializer
 import com.github.wkicior.gymhunter.app.GymHunterSupervisor.RunGymHunting
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerTrainingFetcher
+import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender
 import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingToHuntEventStore
 import com.github.wkicior.gymhunter.web.RestApi
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
@@ -24,7 +25,8 @@ object GymHunterApp extends App {
   val scheduler = QuartzSchedulerExtension(system)
   val trainingToHuntEventStore = system.actorOf(TrainingToHuntEventStore.props, "TrainingToHuntEventStore")
   val gymsteerTrainingFetcher = system.actorOf(RoundRobinPool(8).props(GymsteerTrainingFetcher.props), "GymsteerTrainingFetcher")
-  val supervisor: ActorRef = system.actorOf(GymHunterSupervisor.props(trainingToHuntEventStore, gymsteerTrainingFetcher), "GymHunterSupervisor")
+  val ifttNotificationSender = system.actorOf(IFTTNotificationSender.props, "IFTTNotificationSender")
+  val supervisor: ActorRef = system.actorOf(GymHunterSupervisor.props(trainingToHuntEventStore, gymsteerTrainingFetcher, ifttNotificationSender), "GymHunterSupervisor")
   scheduler.schedule("GymHunterSupervisorScheduler", supervisor, RunGymHunting())
 
   val api = new RestApi(system, trainingToHuntEventStore).routes

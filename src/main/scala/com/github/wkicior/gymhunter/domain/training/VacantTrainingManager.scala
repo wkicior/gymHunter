@@ -3,7 +3,7 @@ package com.github.wkicior.gymhunter.domain.training
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender
+import com.github.wkicior.gymhunter.domain.notification.{Notification, SlotsAvailableNotificationSender}
 import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender.SendNotification
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntProvider.GetTrainingsToHuntByTrainingIdQuery
 import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntProvider}
@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.language.postfixOps
 
 private [training] object VacantTrainingManager {
-  def props(trainingToHuntEventStore: ActorRef): Props = Props(new VacantTrainingManager(TrainingToHuntProvider.props(trainingToHuntEventStore), SlotsAvailableNotificationSender.props()))
+  def props(trainingToHuntEventStore: ActorRef, ifttNotificationSender: ActorRef): Props = Props(new VacantTrainingManager(TrainingToHuntProvider.props(trainingToHuntEventStore), SlotsAvailableNotificationSender.props(ifttNotificationSender)))
   def props(trainingToHuntProviderProps: Props, slotsAvailableNotificationSenderProps: Props): Props = Props(new VacantTrainingManager(trainingToHuntProviderProps, slotsAvailableNotificationSenderProps)
   )
   final case class ProcessVacantTraining(training: Training)
@@ -33,7 +33,7 @@ class VacantTrainingManager(trainingToHuntProviderProps: Props, slotsAvailableNo
       getTrainingsToHunt(training.id)
         .foreach(trainings =>
           trainings
-            .foreach(t => trainingToHuntCommandHandler ! SendNotification(t, training)))
+            .foreach(t => trainingToHuntCommandHandler ! SendNotification(Notification(training.start_date, t.clubId, t.id))))
   }
 
   private def getTrainingsToHunt(trainingId: Long): Future[Set[TrainingToHunt]] = {

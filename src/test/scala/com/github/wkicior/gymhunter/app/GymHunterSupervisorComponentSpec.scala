@@ -4,9 +4,11 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.GetAllTrainingsToHunt
+import com.github.wkicior.gymhunter.domain.notification.Notification
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.{GetAllTrainingsToHunt, GetTrainingToHuntAggregate, StoreEvents}
 import com.github.wkicior.gymhunter.domain.tohunt._
 import com.github.wkicior.gymhunter.domain.training.{GetTraining, Training}
+import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -22,6 +24,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
 
   val trainingToHuntEventStoreProbe = TestProbe()
   val trainingFetcherProbe = TestProbe()
+  val ifttNotificationSenderProbe = TestProbe()
 
   val trainingToHuntEventStoreProps = Props(new Actor {
     def receive: PartialFunction[Any, Unit] = {
@@ -35,10 +38,17 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
     }
   })
 
+  val ifttNotificationSenderProps = Props(new Actor {
+    def receive: PartialFunction[Any, Unit] = {
+      case x => ifttNotificationSenderProbe.ref forward x
+    }
+  })
+
   private val trainingToHuntEventStore = system.actorOf(trainingToHuntEventStoreProps, "TrainingToHuntEventStore")
   private val trainingFetcher = system.actorOf(trainingFetcherProps, "GymsteerTrainingFetcher")
+  private val ifttNotificationSender = system.actorOf(ifttNotificationSenderProps, "IFTTNotificationSender")
 
-  private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(trainingToHuntEventStore, trainingFetcher), "GymHunterSupervisorIntegrationTest")
+  private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(trainingToHuntEventStore, trainingFetcher, ifttNotificationSender), "GymHunterSupervisorIntegrationTest")
 
   "A GymHunterSupervisor Actor" should {
     """start new hunting
@@ -48,7 +58,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
     """.stripMargin in {
       //given
       val training = Training(44L, 1, OffsetDateTime.now().minusDays(1), OffsetDateTime.now.plusDays(1))
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 44L, 8L, OffsetDateTime.now.plusDays(1))
+      val trainingToHunt = new TrainingToHuntAggregate(TrainingToHuntId(), 44L, 8L, OffsetDateTime.now.plusDays(1))
       val probe = TestProbe()
 
       //when
@@ -56,13 +66,18 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
 
       //then
       trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt]
-      trainingToHuntEventStoreProbe.reply(Set(trainingToHunt))
-
+      trainingToHuntEventStoreProbe.reply(Set(trainingToHunt()))
 
       trainingFetcherProbe.expectMsg(GetTraining(44L))
       trainingFetcherProbe.reply(training)
 
-      fail("TODO: implement IFTT check")
+      ifttNotificationSenderProbe.expectMsg(new IFTTNotification(Notification(training.start_date, trainingToHunt.clubId, trainingToHunt.id)))
+
+      trainingToHuntEventStoreProbe.expectMsg(GetTrainingToHuntAggregate(trainingToHunt.id))
+      trainingToHuntEventStoreProbe.reply(trainingToHunt)
+
+      trainingToHuntEventStoreProbe.expectMsg(StoreEvents(trainingToHunt.id, List(TrainingToHuntAggregate.TrainingToHuntNotificationSent(trainingToHunt.id))))
+      trainingToHunt.notificationOnSlotsAvailableSentTime should be <= OffsetDateTime.now
     }
 
     """start new hunting
@@ -82,7 +97,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
 
       trainingFetcherProbe.expectNoMessage()
 
-      fail("TODO: implement IFTT check expectNoMessage()")
+      ifttNotificationSenderProbe.expectNoMessage()
     }
 
     """start new hunting
@@ -105,7 +120,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       trainingFetcherProbe.expectMsg(GetTraining(44L))
       trainingFetcherProbe.reply(training)
 
-      fail("TODO: implement IFTT check expectNoMessage()")
+      ifttNotificationSenderProbe.expectNoMessage()
     }
 
     """start new hunting
@@ -124,8 +139,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       trainingToHuntEventStoreProbe.reply(Set(trainingToHunt))
 
       trainingFetcherProbe.expectNoMessage()
-
-      fail("TODO: implement IFTT check expectNoMessage()")
+      ifttNotificationSenderProbe.expectNoMessage()
     }
   }
 }

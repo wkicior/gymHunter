@@ -4,7 +4,7 @@ package com.github.wkicior.gymhunter.domain.tohunt
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.notification.{SlotsAvailableNotificationSender, SlotsAvailableNotificationSentEvent}
+import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSentEvent
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.{GetTrainingToHuntAggregate, StoreEvents}
 
@@ -13,15 +13,13 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.language.postfixOps
 
 
-object TrainingSlotsAvailableEventHandler {
-  def props(trainingToHuntEventStore: ActorRef): Props = Props(new TrainingSlotsAvailableEventHandler(trainingToHuntEventStore, SlotsAvailableNotificationSender.props()))
-  def props(trainingToHuntEventStore: ActorRef, slotsAvailableNotificationSenderProps: Props): Props = Props(new TrainingSlotsAvailableEventHandler(trainingToHuntEventStore, slotsAvailableNotificationSenderProps))
+object TrainingSlotsAvailableNotificationSentEventHandler {
+  def props(trainingToHuntEventStore: ActorRef): Props = Props(new TrainingSlotsAvailableNotificationSentEventHandler(trainingToHuntEventStore))
+  def props(trainingToHuntEventStore: ActorRef, slotsAvailableNotificationSenderProps: Props): Props = Props(new TrainingSlotsAvailableNotificationSentEventHandler(trainingToHuntEventStore))
 }
 
-class TrainingSlotsAvailableEventHandler(trainingToHuntEventStore: ActorRef, slotsAvailableNotificationSenderProps: Props) extends Actor with ActorLogging {
+class TrainingSlotsAvailableNotificationSentEventHandler(trainingToHuntEventStore: ActorRef) extends Actor with ActorLogging {
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
-
-  val slotsAvailableNotificationSender: ActorRef = context.actorOf(slotsAvailableNotificationSenderProps, "slotsAvailableNotificationSender")
 
   override def preStart(): Unit = context.system.eventStream.subscribe(self, classOf[SlotsAvailableNotificationSentEvent])
 

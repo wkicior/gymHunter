@@ -5,6 +5,8 @@ import com.typesafe.config.Config
 
 class SettingsImpl(config: Config) extends Extension {
   val gymsteerHost: String = config.getString("gymhunter.gymsteer.host")
+  val ifttHost: String = config.getString("gymhunter.iftt.host")
+  val ifttKey: String = config.getString("gymhunter.iftt.key")
 }
 object Settings extends ExtensionId[SettingsImpl] with ExtensionIdProvider {
 

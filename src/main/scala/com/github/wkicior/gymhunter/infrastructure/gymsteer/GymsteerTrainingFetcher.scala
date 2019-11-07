@@ -22,7 +22,7 @@ class GymsteerTrainingFetcher extends Actor with ActorLogging {
   import com.github.wkicior.gymhunter.app.JsonProtocol._
   import context.dispatcher
 
-  implicit val system: ActorSystem = ActorSystem("GymHunter")
+  implicit val system: ActorSystem = context.system
   implicit val mat: ActorMaterializer = ActorMaterializer()(context)
   val settings: SettingsImpl = Settings(context.system)
 
