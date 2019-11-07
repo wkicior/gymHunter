@@ -26,9 +26,9 @@ class TrainingSlotsAvailableEventHandler(trainingToHuntEventStore: ActorRef, slo
   override def preStart(): Unit = context.system.eventStream.subscribe(self, classOf[SlotsAvailableNotificationSentEvent])
 
   def receive: PartialFunction[Any, Unit] = {
-    case SlotsAvailableNotificationSentEvent(id) =>
+    case SlotsAvailableNotificationSentEvent(notification) =>
       implicit val timeout: Timeout = Timeout(2 seconds)
-      ask(trainingToHuntEventStore, GetTrainingToHuntAggregate(id)).mapTo[OptionalTrainingToHunt[TrainingToHuntAggregate]]
+      ask(trainingToHuntEventStore, GetTrainingToHuntAggregate(notification.trainingToHuntId)).mapTo[OptionalTrainingToHunt[TrainingToHuntAggregate]]
         .flatMap {
           case ot@Left(_) => Future(ot)
           case Right(trainingToHunt) =>
