@@ -4,10 +4,9 @@ package com.github.wkicior.gymhunter.domain.tohunt
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender
+import com.github.wkicior.gymhunter.domain.notification.{SlotsAvailableNotificationSender, SlotsAvailableNotificationSentEvent}
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.{GetTrainingToHuntAggregate, StoreEvents}
-import com.github.wkicior.gymhunter.domain.training.TrainingSlotsAvailableEvent
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
@@ -24,10 +23,10 @@ class TrainingSlotsAvailableEventHandler(trainingToHuntEventStore: ActorRef, slo
 
   val slotsAvailableNotificationSender: ActorRef = context.actorOf(slotsAvailableNotificationSenderProps, "slotsAvailableNotificationSender")
 
-  override def preStart(): Unit = context.system.eventStream.subscribe(self, classOf[TrainingSlotsAvailableEvent])
+  override def preStart(): Unit = context.system.eventStream.subscribe(self, classOf[SlotsAvailableNotificationSentEvent])
 
   def receive: PartialFunction[Any, Unit] = {
-    case TrainingSlotsAvailableEvent(id) =>
+    case SlotsAvailableNotificationSentEvent(id) =>
       implicit val timeout: Timeout = Timeout(2 seconds)
       ask(trainingToHuntEventStore, GetTrainingToHuntAggregate(id)).mapTo[OptionalTrainingToHunt[TrainingToHuntAggregate]]
         .flatMap {

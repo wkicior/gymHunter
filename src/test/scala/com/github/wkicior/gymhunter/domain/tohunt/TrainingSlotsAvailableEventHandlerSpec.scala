@@ -4,11 +4,9 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.notification.NotificationFailedException
-import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender.SendNotification
+import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSentEvent
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntNotificationSent}
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.{GetTrainingToHuntAggregate, StoreEvents}
-import com.github.wkicior.gymhunter.domain.training.TrainingSlotsAvailableEvent
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -49,7 +47,7 @@ class TrainingSlotsAvailableEventHandlerSpec(_system: ActorSystem) extends TestK
       val sampleTrainingToHunt = new TrainingToHuntAggregate(trainingToHuntAddedEvent) //creating from event in order to have clean events list
 
       //when
-      trainingToHuntCommandHandler.tell(TrainingSlotsAvailableEvent(sampleTrainingToHunt.id), probe.ref)
+      system.eventStream.publish(SlotsAvailableNotificationSentEvent(sampleTrainingToHunt.id))
 
       //then
       trainingToHuntEventStoreProbe.expectMsg(GetTrainingToHuntAggregate(sampleTrainingToHunt.id))
@@ -57,9 +55,6 @@ class TrainingSlotsAvailableEventHandlerSpec(_system: ActorSystem) extends TestK
 
       trainingToHuntEventStoreProbe.expectMsg(StoreEvents(sampleTrainingToHunt.id, List(TrainingToHuntNotificationSent(sampleTrainingToHunt.id))))
       trainingToHuntEventStoreProbe.reply(Right(sampleTrainingToHunt.id))
-
-      slotsAvailableNotificationSenderProbe.expectMsg(SendNotification(sampleTrainingToHunt()))
-      slotsAvailableNotificationSenderProbe.reply(Right("Success"))
 
       sampleTrainingToHunt.notificationOnSlotsAvailableSentTime should be <= OffsetDateTime.now()
     }
