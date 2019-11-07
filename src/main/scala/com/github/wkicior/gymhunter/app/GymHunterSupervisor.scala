@@ -2,10 +2,9 @@ package com.github.wkicior.gymhunter.app
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import com.github.wkicior.gymhunter.app.GymHunterSupervisor.RunGymHunting
-import com.github.wkicior.gymhunter.domain.notification.IFTTNotifier
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingSlotsAvailableEventHandler
 import com.github.wkicior.gymhunter.domain.training.TrainingHunter
 import com.github.wkicior.gymhunter.domain.training.TrainingHunter.Hunt
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingSlotsAvailableNotificationHandler
 
 object GymHunterSupervisor {
   def props(trainingToHuntRepository: ActorRef, gymsteerTrainingFetcher: ActorRef): Props = Props(new GymHunterSupervisor(trainingToHuntRepository, gymsteerTrainingFetcher))
@@ -18,8 +17,7 @@ class GymHunterSupervisor(trainingToHuntEventStore: ActorRef, trainingFetcher: A
   override def postStop(): Unit = log.info("GymHunter Application stopped")
 
   val trainingHunter: ActorRef = context.actorOf(TrainingHunter.props(trainingToHuntEventStore, trainingFetcher), "trainingHunter")
-  val ifttNotifier: ActorRef = context.actorOf(IFTTNotifier.props(trainingToHuntEventStore), "ifttNotifier")
-  val trainingSlotsAvailableNotificationHandler: ActorRef = context.actorOf(TrainingSlotsAvailableNotificationHandler.props(trainingToHuntEventStore), "trainingSlotsAvailableNotificationHandler")
+  val trainingSlotsAvailableNotificationHandler: ActorRef = context.actorOf(TrainingSlotsAvailableEventHandler.props(trainingToHuntEventStore), "trainingSlotsAvailableNotificationHandler")
 
   def receive: PartialFunction[Any, Unit] = {
     case RunGymHunting() => trainingHunter ! Hunt()

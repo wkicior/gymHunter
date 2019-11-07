@@ -4,6 +4,7 @@ package com.github.wkicior.gymhunter.domain.tohunt
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
+import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.{GetTrainingToHuntAggregate, StoreEvents}
 import com.github.wkicior.gymhunter.domain.training.TrainingSlotsAvailableEvent
@@ -13,12 +14,15 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.language.postfixOps
 
 
-object TrainingSlotsAvailableNotificationHandler {
-  def props(trainingToHuntEventStore: ActorRef): Props = Props(new TrainingSlotsAvailableNotificationHandler(trainingToHuntEventStore))
+object TrainingSlotsAvailableEventHandler {
+  def props(trainingToHuntEventStore: ActorRef): Props = Props(new TrainingSlotsAvailableEventHandler(trainingToHuntEventStore, SlotsAvailableNotificationSender.props()))
+  def props(trainingToHuntEventStore: ActorRef, slotsAvailableNotificationSenderProps: Props): Props = Props(new TrainingSlotsAvailableEventHandler(trainingToHuntEventStore, slotsAvailableNotificationSenderProps))
 }
 
-class TrainingSlotsAvailableNotificationHandler(trainingToHuntEventStore: ActorRef) extends Actor with ActorLogging {
+class TrainingSlotsAvailableEventHandler(trainingToHuntEventStore: ActorRef, slotsAvailableNotificationSenderProps: Props) extends Actor with ActorLogging {
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
+
+  val slotsAvailableNotificationSender: ActorRef = context.actorOf(slotsAvailableNotificationSenderProps, "slotsAvailableNotificationSender")
 
   override def preStart(): Unit = context.system.eventStream.subscribe(self, classOf[TrainingSlotsAvailableEvent])
 

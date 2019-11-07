@@ -4,7 +4,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 import akka.event.jul.Logger
-import com.github.wkicior.gymhunter.app.es.EventSourced
+import com.github.wkicior.gymhunter.domain.es.EventSourced
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntAggregate.{TrainingToHuntAdded, TrainingToHuntDeleted, TrainingToHuntEvent, TrainingToHuntNotificationSent}
 
 import scala.collection.mutable.ListBuffer
