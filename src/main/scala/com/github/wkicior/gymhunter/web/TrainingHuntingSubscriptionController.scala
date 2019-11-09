@@ -8,9 +8,10 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
+import com.github.wkicior.gymhunter.app.Settings
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.{CreateTrainingHuntingSubscriptionCommand, DeleteTrainingHuntingSubscriptionCommand}
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId.OptionalTrainingHuntingSubscription
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionProvider.{GetAllTrainingHuntingSubscriptionsQuery, GetActiveTrainingHuntingSubscriptionsQuery}
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionProvider.{GetActiveTrainingHuntingSubscriptionsQuery, GetAllTrainingHuntingSubscriptionsQuery}
 import com.github.wkicior.gymhunter.domain.subscription._
 
 import scala.concurrent.Future
@@ -26,6 +27,7 @@ trait TrainingHuntingSubscriptionController {
 
   lazy val thsProvider: ActorRef = system.actorOf(TrainingHuntingSubscriptionProvider.props(trainingHuntingSubscriptionEventStore))
   lazy val thsCommandHandler: ActorRef = system.actorOf(TrainingHuntingSubscriptionCommandHandler.props(trainingHuntingSubscriptionEventStore))
+  lazy val basicAuthenticator = BasicAuthenticator(Settings(system))
 
   def getAllTrainingHuntingSubscriptions: Future[Set[TrainingHuntingSubscription]] = {
     implicit val timeout: Timeout = Timeout(5 seconds)
@@ -43,36 +45,38 @@ trait TrainingHuntingSubscriptionController {
   }
 
   lazy val trainingHuntingSubscriptionRoutes: Route = pathPrefix("training-hunting-subscriptions") {
-    concat(
-      get {
-        onComplete(getAllTrainingHuntingSubscriptions) {
-          case Success(trainingHuntingSubscriptions) =>
-            complete(StatusCodes.OK, trainingHuntingSubscriptions)
-          case Failure(throwable) =>
-            throwable match {
-              case _ => complete(StatusCodes.InternalServerError, "Failed to get training hunting subscriptions.")
+    authenticateBasic(realm = "gymhunter", basicAuthenticator.userPassAuthenticator) { _ =>
+      concat(
+        get {
+          onComplete(getAllTrainingHuntingSubscriptions) {
+            case Success(trainingHuntingSubscriptions) =>
+              complete(StatusCodes.OK, trainingHuntingSubscriptions)
+            case Failure(throwable) =>
+              throwable match {
+                case _ => complete(StatusCodes.InternalServerError, "Failed to get training hunting subscriptions.")
+              }
+          }
+        },
+        post {
+          decodeRequest {
+            entity(as[CreateTrainingHuntingSubscriptionCommand]) { trainingHuntingSubscriptionRequest =>
+              complete(StatusCodes.Created, saveTrainingHuntingSubscription(trainingHuntingSubscriptionRequest))
             }
-        }
-      },
-      post {
-        decodeRequest {
-          entity(as[CreateTrainingHuntingSubscriptionCommand]) { trainingHuntingSubscriptionRequest =>
-            complete(StatusCodes.Created, saveTrainingHuntingSubscription(trainingHuntingSubscriptionRequest))
           }
         }
-      }
-    ) ~path(JavaUUID) { id =>
-      delete {
-        onComplete(deleteTrainingHuntingSubscription(id)) {
-          case Success(trainingHuntingSubscription) =>
-            trainingHuntingSubscription match {
-              case Left(x) => complete(StatusCodes.NotFound, x.getMessage)
-              case Right(x) => complete(StatusCodes.OK, x)
-            }
-          case Failure(throwable) =>
-            throwable match {
-              case _ => complete(StatusCodes.InternalServerError, "Failed to get training hunting subscriptions.")
-            }
+      ) ~ path(JavaUUID) { id =>
+        delete {
+          onComplete(deleteTrainingHuntingSubscription(id)) {
+            case Success(trainingHuntingSubscription) =>
+              trainingHuntingSubscription match {
+                case Left(x) => complete(StatusCodes.NotFound, x.getMessage)
+                case Right(x) => complete(StatusCodes.OK, x)
+              }
+            case Failure(throwable) =>
+              throwable match {
+                case _ => complete(StatusCodes.InternalServerError, "Failed to get training hunting subscriptions.")
+              }
+          }
         }
       }
     }

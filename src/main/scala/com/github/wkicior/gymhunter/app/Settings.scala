@@ -7,6 +7,7 @@ class SettingsImpl(config: Config) extends Extension {
   val gymsteerHost: String = config.getString("gymhunter.gymsteer.host")
   val ifttHost: String = config.getString("gymhunter.iftt.host")
   val ifttKey: String = config.getString("gymhunter.iftt.key")
+  val basicAuthPassword: String = config.getString("gymhunter.auth.password")
 }
 object Settings extends ExtensionId[SettingsImpl] with ExtensionIdProvider {
 

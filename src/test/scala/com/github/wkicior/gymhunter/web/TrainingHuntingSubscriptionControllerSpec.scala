@@ -3,12 +3,15 @@ package com.github.wkicior.gymhunter.web
 import java.time.{OffsetDateTime, ZoneOffset}
 import java.util.UUID
 
-import akka.http.javadsl.model.StatusCodes
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.headers.BasicHttpCredentials
+import akka.http.scaladsl.server.AuthenticationFailedRejection
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.CreateTrainingHuntingSubscriptionCommand
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscription
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.CreateTrainingHuntingSubscriptionCommand
 import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingHuntingSubscriptionEventStore
 import org.scalatest.{Inside, Matchers, WordSpec}
+
 
 class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers with ScalatestRouteTest with Inside {
   "TrainingHuntingSubscriptionController" should {
@@ -16,9 +19,23 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
 
     val thsEventStore = system.actorOf(TrainingHuntingSubscriptionEventStore.props, "TrainingHuntingSubscriptionEventStore")
     val routes = new RestApi(system, thsEventStore).routes
+    val validCredentials = BasicHttpCredentials("John", "knight-who-say-ni")
+
+
+    "require authentication" in {
+      Get("/api/training-hunting-subscriptions") ~> routes  ~> check {
+        rejection shouldBe a [AuthenticationFailedRejection]
+      }
+    }
+
+    "reject with invalid authentication" in {
+      Get("/api/training-hunting-subscriptions") ~> addCredentials(BasicHttpCredentials("John", "invalidpass")) ~> routes  ~> check {
+        rejection shouldBe a [AuthenticationFailedRejection]
+      }
+    }
 
     "return empty list of training hunting subscriptions " in {
-      Get("/api/training-hunting-subscriptions") ~> routes ~> check {
+      Get("/api/training-hunting-subscriptions") ~> addCredentials(validCredentials) ~> routes ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[Seq[TrainingHuntingSubscription]].size shouldEqual 0
       }
@@ -26,8 +43,8 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
 
     "save new training hunting subscription and be able to return it" in {
       val endOfHuntDatetime = OffsetDateTime.of(2019, 11, 1, 14, 0, 0, 0, ZoneOffset.UTC)
-      Post("/api/training-hunting-subscriptions", CreateTrainingHuntingSubscriptionCommand(123, 8, endOfHuntDatetime)) ~> routes ~> check {
-        status shouldEqual StatusCodes.CREATED
+      Post("/api/training-hunting-subscriptions", CreateTrainingHuntingSubscriptionCommand(123, 8, endOfHuntDatetime)) ~> addCredentials(validCredentials) ~> routes ~> check {
+        status shouldEqual StatusCodes.Created
         val ths = responseAs[TrainingHuntingSubscription]
         inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime) =>
             id.toString should not be empty
@@ -36,14 +53,14 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
             huntingEndTime shouldEqual endOfHuntDatetime
             notificationOnSlotsAvailableSentTime shouldBe None
         }
-        Get("/api/training-hunting-subscriptions") ~> routes ~> check {
+        Get("/api/training-hunting-subscriptions") ~> addCredentials(validCredentials) ~> routes ~> check {
           responseAs[Seq[TrainingHuntingSubscription]] should contain (ths)
         }
       }
     }
 
     "return already saved training hunting subscriptions" in {
-      Get("/api/training-hunting-subscriptions") ~> routes ~> check {
+      Get("/api/training-hunting-subscriptions") ~> addCredentials(validCredentials) ~> routes ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[Seq[TrainingHuntingSubscription]].size shouldEqual 1
       }
@@ -51,10 +68,10 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
 
     "delete training hunting subscription by and not returning it on a query" in {
       val endOfHuntDatetime = OffsetDateTime.of(2019, 11, 1, 14, 0, 0, 0, ZoneOffset.UTC)
-      Post("/api/training-hunting-subscriptions", CreateTrainingHuntingSubscriptionCommand(124, 8, endOfHuntDatetime)) ~> routes ~> check {
-        status shouldEqual StatusCodes.CREATED
+      Post("/api/training-hunting-subscriptions", CreateTrainingHuntingSubscriptionCommand(124, 8, endOfHuntDatetime)) ~> addCredentials(validCredentials) ~> routes ~> check {
+        status shouldEqual StatusCodes.Created
         val ths = responseAs[TrainingHuntingSubscription]
-        Delete(s"/api/training-hunting-subscriptions/${ths.id}") ~> routes ~> check {
+        Delete(s"/api/training-hunting-subscriptions/${ths.id}") ~> addCredentials(validCredentials) ~> routes ~> check {
           status shouldEqual StatusCodes.OK
           val deletedThs = responseAs[TrainingHuntingSubscription]
           inside(deletedThs) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime) =>
@@ -65,7 +82,7 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
             notificationOnSlotsAvailableSentTime shouldBe None
           }
 
-          Get("/api/training-hunting-subscriptions") ~> routes ~> check {
+          Get("/api/training-hunting-subscriptions") ~> addCredentials(validCredentials) ~> routes ~> check {
             status shouldEqual StatusCodes.OK
             responseAs[Seq[TrainingHuntingSubscription]] should not contain deletedThs
           }
@@ -75,8 +92,8 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
 
     "delete returns 404 if training hunting subscription is not found" in {
       val id = UUID.randomUUID().toString
-      Delete(s"/api/training-hunting-subscriptions/$id") ~> routes ~> check {
-        status shouldEqual StatusCodes.NOT_FOUND
+      Delete(s"/api/training-hunting-subscriptions/$id") ~> addCredentials(validCredentials) ~> routes ~> check {
+        status shouldEqual StatusCodes.NotFound
       }
     }
 
