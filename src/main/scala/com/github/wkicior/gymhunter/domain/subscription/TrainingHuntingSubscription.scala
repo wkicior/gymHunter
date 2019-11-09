@@ -32,9 +32,9 @@ case class TrainingHuntingSubscription(id: TrainingHuntingSubscriptionId, extern
 object TrainingHuntingSubscriptionAggregate {
   sealed trait TrainingHuntingSubscriptionEvent extends EventSourced {
     val id: TrainingHuntingSubscriptionId
-    override def createdDateTime: OffsetDateTime = {
-      super.createdDateTime
-    }
+//    override val createdDateTime: OffsetDateTime = {
+//      super.createdDateTime
+//    }
   }
   final case class TrainingHuntingSubscriptionAdded(id: TrainingHuntingSubscriptionId, externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime) extends TrainingHuntingSubscriptionEvent
   final case class TrainingHuntingSubscriptionDeleted(id: TrainingHuntingSubscriptionId) extends TrainingHuntingSubscriptionEvent
@@ -69,14 +69,17 @@ case class TrainingHuntingSubscriptionAggregate(id: TrainingHuntingSubscriptionI
   def apply(trainingHuntingSubscriptionEvent: TrainingHuntingSubscriptionEvent): TrainingHuntingSubscriptionAggregate = {
     trainingHuntingSubscriptionEvent match {
       case deleted: TrainingHuntingSubscriptionDeleted => logger.info(s"TrainingHuntingSubscription deleted ${deleted.id}")
-      case notificationSent: TrainingHuntingSubscriptionNotificationSent => this.notificationOnSlotsAvailableSentTime = notificationSent.createdDateTime
+      case notificationSent: TrainingHuntingSubscriptionNotificationSent => {
+        logger.info(s"will put ${notificationSent.createdDateTime}")
+        this.notificationOnSlotsAvailableSentTime = notificationSent.createdDateTime
+      }
       case event => logger.warning(s"unrecognized event: $event")
     }
     this
   }
 
   def apply(): TrainingHuntingSubscription = {
-    TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime)
+    TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime, Option(notificationOnSlotsAvailableSentTime))
   }
 
   def pendingEventsList(): List[TrainingHuntingSubscriptionEvent] = pendingEvents.toList

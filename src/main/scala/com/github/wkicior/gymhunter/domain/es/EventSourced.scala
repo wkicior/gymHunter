@@ -4,6 +4,6 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 trait EventSourced {
-  def eventId: UUID = UUID.randomUUID()
-  def createdDateTime: OffsetDateTime = OffsetDateTime.now()
+  val eventId: UUID = UUID.randomUUID()
+  val createdDateTime: OffsetDateTime = OffsetDateTime.now()
 }
