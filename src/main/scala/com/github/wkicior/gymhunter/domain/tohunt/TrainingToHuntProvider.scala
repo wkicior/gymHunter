@@ -13,10 +13,10 @@ import scala.language.postfixOps
 
 object TrainingToHuntProvider {
   def props(trainingToHuntEventStore: ActorRef): Props = Props(new TrainingToHuntProvider(trainingToHuntEventStore))
-  final case class GetTrainingsToHuntQuery()
+  final case class GetActiveTrainingsToHuntQuery()
+  final case class GetAllTrainingsToHuntQuery()
   final case class GetTrainingsToHuntByTrainingIdQuery(id: Long)
   final case class GetTrainingToHuntQuery(id: TrainingToHuntId)
-
 }
 
 class TrainingToHuntProvider(trainingToHuntEventStore: ActorRef) extends Actor with ActorLogging {
@@ -25,7 +25,13 @@ class TrainingToHuntProvider(trainingToHuntEventStore: ActorRef) extends Actor w
 
   def receive: PartialFunction[Any, Unit] = {
 
-    case GetTrainingsToHuntQuery() =>
+    case GetActiveTrainingsToHuntQuery() =>
+      implicit val timeout: Timeout = Timeout(5 seconds)
+      ask(trainingToHuntEventStore, GetAllTrainingsToHunt()).mapTo[Set[TrainingToHunt]]
+        .map(trainingsToHunt => trainingsToHunt.filter(t => t.isActive))
+        .pipeTo(sender())
+
+    case GetAllTrainingsToHuntQuery() =>
       implicit val timeout: Timeout = Timeout(5 seconds)
       ask(trainingToHuntEventStore, GetAllTrainingsToHunt()).mapTo[Set[TrainingToHunt]]
         .pipeTo(sender())

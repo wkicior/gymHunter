@@ -46,7 +46,7 @@ class TrainingHunter(trainingToHuntProviderProps: Props, trainingFetcher: ActorR
 
   private def getTrainingsToHunt: Future[Set[TrainingToHunt]] = {
     implicit val timeout: Timeout = Timeout(5 seconds)
-    ask(trainingToHuntProvider, GetTrainingsToHuntQuery()).mapTo[Set[TrainingToHunt]]
+    ask(trainingToHuntProvider, GetActiveTrainingsToHuntQuery()).mapTo[Set[TrainingToHunt]]
   }
 
   private def getTraining(id: Long): Future[Training] = {

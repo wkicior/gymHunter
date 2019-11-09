@@ -54,7 +54,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
+      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetActiveTrainingsToHuntQuery]
       trainingToHuntProviderProbe.reply(Set())
 
       trainingFetcherProbe.expectNoMessage()
@@ -73,7 +73,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
+      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetActiveTrainingsToHuntQuery]
       trainingToHuntProviderProbe.reply(Set(TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now, None)))
 
       trainingFetcherProbe.expectMsg(GetTraining(42L))
@@ -94,7 +94,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetTrainingsToHuntQuery]
+      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetActiveTrainingsToHuntQuery]
       trainingToHuntProviderProbe.reply(Set(TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now, None)))
 
       trainingFetcherProbe.expectMsg(GetTraining(42L))

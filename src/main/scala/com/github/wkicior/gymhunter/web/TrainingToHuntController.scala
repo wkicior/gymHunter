@@ -10,7 +10,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntCommandHandler.{CreateTrainingToHuntCommand, DeleteTrainingToHuntCommand}
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntProvider.GetTrainingsToHuntQuery
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntProvider.{GetAllTrainingsToHuntQuery, GetActiveTrainingsToHuntQuery}
 import com.github.wkicior.gymhunter.domain.tohunt._
 
 import scala.concurrent.Future
@@ -29,7 +29,7 @@ trait TrainingToHuntController {
 
   def getTrainingsToHunt: Future[Set[TrainingToHunt]] = {
     implicit val timeout: Timeout = Timeout(5 seconds)
-    ask(trainingToHuntProvider, GetTrainingsToHuntQuery()).mapTo[Set[TrainingToHunt]]
+    ask(trainingToHuntProvider, GetAllTrainingsToHuntQuery()).mapTo[Set[TrainingToHunt]]
   }
 
   def saveTrainingToHunt(trainingToHuntRequest: CreateTrainingToHuntCommand): Future[TrainingToHunt] = {

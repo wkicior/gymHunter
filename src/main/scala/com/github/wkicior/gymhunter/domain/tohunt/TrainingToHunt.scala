@@ -23,7 +23,11 @@ object TrainingToHuntId {
   type OptionalTrainingToHunt[+A] = Either[TrainingToHuntNotFound, A]
 }
 
-case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime, notificationOnSlotsAvailableSentTime: Option[OffsetDateTime] = None)
+case class TrainingToHunt(id: TrainingToHuntId, externalSystemId: Long, clubId: Long, huntingEndTime: OffsetDateTime, notificationOnSlotsAvailableSentTime: Option[OffsetDateTime] = None) {
+  def hasNotificationBeenSent: Boolean = this.notificationOnSlotsAvailableSentTime.isDefined
+  def isContemporary: Boolean = this.huntingEndTime.isAfter(OffsetDateTime.now)
+  def isActive: Boolean = !hasNotificationBeenSent && isContemporary
+}
 
 object TrainingToHuntAggregate {
   sealed trait TrainingToHuntEvent extends EventSourced {

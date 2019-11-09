@@ -6,7 +6,7 @@ import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
 import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.{GetAllTrainingsToHunt, GetTrainingToHunt}
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntProvider.{GetTrainingToHuntQuery, GetTrainingsToHuntByTrainingIdQuery, GetTrainingsToHuntQuery}
+import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntProvider.{GetAllTrainingsToHuntQuery, GetTrainingToHuntQuery, GetTrainingsToHuntByTrainingIdQuery, GetActiveTrainingsToHuntQuery}
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -31,11 +31,11 @@ class TrainingToHuntProviderSpec(_system: ActorSystem) extends TestKit(_system) 
   private val trainingToHuntProvider = system.actorOf(TrainingToHuntProvider.props(trainingToHuntEventStore))
 
   "A TrainingToHuntProvider Actor" should {
-    "return active trainings to hunt from the event store" in {
+    "return all trainings to hunt from the event store" in {
       //given
       val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now(), None)
       //when
-      trainingToHuntProvider.tell(GetTrainingsToHuntQuery(), probe.ref)
+      trainingToHuntProvider.tell(GetAllTrainingsToHuntQuery(), probe.ref)
 
       //then
       trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt]
@@ -43,6 +43,48 @@ class TrainingToHuntProviderSpec(_system: ActorSystem) extends TestKit(_system) 
 
       val response = probe.expectMsgType[Set[TrainingToHunt]]
       response should contain only trainingToHunt
+    }
+
+    "return active trainings to hunt from the event store" in {
+      //given
+      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now().plusMinutes(1), None)
+      //when
+      trainingToHuntProvider.tell(GetActiveTrainingsToHuntQuery(), probe.ref)
+
+      //then
+      trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt]
+      trainingToHuntEventStoreProbe.reply(Set(trainingToHunt))
+
+      val response = probe.expectMsgType[Set[TrainingToHunt]]
+      response should contain only trainingToHunt
+    }
+
+    "ignore notified trainings to hunt from the event store" in {
+      //given
+      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now(), Some(OffsetDateTime.now))
+      //when
+      trainingToHuntProvider.tell(GetActiveTrainingsToHuntQuery(), probe.ref)
+
+      //then
+      trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt]
+      trainingToHuntEventStoreProbe.reply(Set(trainingToHunt))
+
+      val response = probe.expectMsgType[Set[TrainingToHunt]]
+      response shouldBe empty
+    }
+
+    "ignore trainings to hunt for which hunting end time has passed" in {
+      //given
+      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now.minusSeconds(1), None)
+      //when
+      trainingToHuntProvider.tell(GetActiveTrainingsToHuntQuery(), probe.ref)
+
+      //then
+      trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt]
+      trainingToHuntEventStoreProbe.reply(Set(trainingToHunt))
+
+      val response = probe.expectMsgType[Set[TrainingToHunt]]
+      response shouldBe empty
     }
 
     "return trainings to hunt by external system training Id" in {
