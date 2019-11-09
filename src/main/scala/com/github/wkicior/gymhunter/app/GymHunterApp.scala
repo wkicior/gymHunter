@@ -30,7 +30,7 @@ object GymHunterApp extends App {
   scheduler.schedule("GymHunterSupervisorScheduler", supervisor, RunGymHunting())
 
   val api = new RestApi(system, trainingHuntingSubscriptionEventStore).routes
-  Http().bindAndHandle(api, "localhost", 8080)
+  Http().bindAndHandle(api, "0.0.0.0", 8080)
   log.info("Starting the HTTP server at 8080")
   Await.result(system.whenTerminated, Duration.Inf)
 }

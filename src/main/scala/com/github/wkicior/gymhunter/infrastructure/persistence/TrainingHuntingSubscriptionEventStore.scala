@@ -19,7 +19,8 @@ object TrainingHuntingSubscriptionEventStore {
 
 final case class State(trainingHuntingSubscriptions: Map[TrainingHuntingSubscriptionId, TrainingHuntingSubscriptionAggregate] = Map.empty) {
   def apply(): Set[TrainingHuntingSubscriptionAggregate] = trainingHuntingSubscriptions.values.toSet
-  def apply(id: TrainingHuntingSubscriptionId): OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate] = trainingHuntingSubscriptions.get(id).toRight(TrainingHuntingSubscriptionNotFound(id))
+  def apply(id: TrainingHuntingSubscriptionId): OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate] =
+    trainingHuntingSubscriptions.get(id).toRight(TrainingHuntingSubscriptionNotFound(id))
   def +(event: TrainingHuntingSubscriptionEvent): State = {
     event match {
       case createEvent: TrainingHuntingSubscriptionAdded => State(trainingHuntingSubscriptions.updated(event.id, new TrainingHuntingSubscriptionAggregate(createEvent)))

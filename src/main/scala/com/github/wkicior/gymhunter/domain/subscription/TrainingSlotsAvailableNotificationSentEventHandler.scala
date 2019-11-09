@@ -15,7 +15,8 @@ import scala.language.postfixOps
 
 object TrainingSlotsAvailableNotificationSentEventHandler {
   def props(trainingHuntingSubscriptionEventStore: ActorRef): Props = Props(new TrainingSlotsAvailableNotificationSentEventHandler(trainingHuntingSubscriptionEventStore))
-  def props(trainingHuntingSubscriptionEventStore: ActorRef, slotsAvailableNotificationSenderProps: Props): Props = Props(new TrainingSlotsAvailableNotificationSentEventHandler(trainingHuntingSubscriptionEventStore))
+  def props(trainingHuntingSubscriptionEventStore: ActorRef, slotsAvailableNotificationSenderProps: Props): Props = Props(
+    new TrainingSlotsAvailableNotificationSentEventHandler(trainingHuntingSubscriptionEventStore))
 }
 
 class TrainingSlotsAvailableNotificationSentEventHandler(trainingHuntingSubscriptionEventStore: ActorRef) extends Actor with ActorLogging {
@@ -26,12 +27,14 @@ class TrainingSlotsAvailableNotificationSentEventHandler(trainingHuntingSubscrip
   def receive: PartialFunction[Any, Unit] = {
     case SlotsAvailableNotificationSentEvent(notification) =>
       implicit val timeout: Timeout = Timeout(2 seconds)
-      ask(trainingHuntingSubscriptionEventStore, GetTrainingHuntingSubscriptionAggregate(notification.trainingHuntingSubscriptionId)).mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
+      ask(trainingHuntingSubscriptionEventStore, GetTrainingHuntingSubscriptionAggregate(notification.trainingHuntingSubscriptionId))
+        .mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
         .flatMap {
           case ot@Left(_) => Future(ot)
           case Right(trainingHuntingSubscription) =>
             trainingHuntingSubscription.notifyOnSlotsAvailable()
-            ask(trainingHuntingSubscriptionEventStore, StoreEvents(trainingHuntingSubscription.id, trainingHuntingSubscription.pendingEventsList())).mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
+            ask(trainingHuntingSubscriptionEventStore, StoreEvents(trainingHuntingSubscription.id, trainingHuntingSubscription.pendingEventsList()))
+              .mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
               .map(_ => Right(trainingHuntingSubscription()))
         }
     case x =>

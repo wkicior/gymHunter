@@ -1,0 +1,23 @@
+version: '3'
+
+networks:
+  service-network:
+
+volumes:
+  data-volume:
+
+services:
+  gymhunter:
+    container_name: gymhunter
+    image: gymhunter:latest
+    ports:
+      - "8080:8080"
+    networks:
+      - service-network
+    volumes:
+      - data-volume:/mnt/gymhunter-data
+    environment:
+      - IFTT_KEY
+      - GYMHUNTER_PASSWORD
+      - GYMHUNTER_STORAGE_DIR=/mnt/gymhunter-data
+

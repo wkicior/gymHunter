@@ -27,19 +27,22 @@ class TrainingHuntingSubscriptionCommandHandler(trainingHuntingSubscriptionEvent
     case tr: CreateTrainingHuntingSubscriptionCommand =>
       implicit val timeout: Timeout = Timeout(2 seconds)
       val trainingHuntingSubscription = new TrainingHuntingSubscriptionAggregate(TrainingHuntingSubscriptionId(), tr.externalSystemId, tr.clubId, tr.huntingEndTime)
-      ask(trainingHuntingSubscriptionEventStore, StoreEvents(trainingHuntingSubscription.id, trainingHuntingSubscription.pendingEventsList())).mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
+      ask(trainingHuntingSubscriptionEventStore, StoreEvents(trainingHuntingSubscription.id, trainingHuntingSubscription.pendingEventsList()))
+        .mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
         .map(ttha => ttha.toOption.get)
         .map(ttha => ttha())
         .pipeTo(sender())
 
     case DeleteTrainingHuntingSubscriptionCommand(id) =>
       implicit val timeout: Timeout = Timeout(2 seconds)
-      ask(trainingHuntingSubscriptionEventStore, GetTrainingHuntingSubscriptionAggregate(id)).mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
+      ask(trainingHuntingSubscriptionEventStore, GetTrainingHuntingSubscriptionAggregate(id))
+        .mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
         .flatMap {
           case ot@Left(_) => Future(ot)
           case Right(trainingHuntingSubscription) =>
             trainingHuntingSubscription.delete()
-            ask(trainingHuntingSubscriptionEventStore, StoreEvents(trainingHuntingSubscription.id, trainingHuntingSubscription.pendingEventsList())).mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
+            ask(trainingHuntingSubscriptionEventStore, StoreEvents(trainingHuntingSubscription.id, trainingHuntingSubscription.pendingEventsList()))
+              .mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
               .map(_ => Right(trainingHuntingSubscription()))
         }
         .pipeTo(sender())

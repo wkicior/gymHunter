@@ -4,9 +4,8 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.ask
 import akka.routing.RoundRobinPool
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.ProcessVacantTraining
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionProvider}
-import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender
+import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.ProcessVacantTraining
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
@@ -14,7 +13,8 @@ import scala.language.postfixOps
 
 
 object TrainingHunter {
-  private [gymhunter] def props(thsEventStore: ActorRef, trainingFetcher: ActorRef, ifttNotifiationSender: ActorRef): Props = Props(new TrainingHunter(TrainingHuntingSubscriptionProvider.props(thsEventStore), trainingFetcher, VacantTrainingManager.props(thsEventStore, ifttNotifiationSender)))
+  private [gymhunter] def props(thsEventStore: ActorRef, trainingFetcher: ActorRef, ifttNotifiationSender: ActorRef): Props = Props(
+    new TrainingHunter(TrainingHuntingSubscriptionProvider.props(thsEventStore), trainingFetcher, VacantTrainingManager.props(thsEventStore, ifttNotifiationSender)))
   private [training] def props(trainingHunterProps: Props, trainingFetcher: ActorRef, vacantTrainingManagerProps: Props): Props = Props(
     new TrainingHunter(trainingHunterProps, trainingFetcher, vacantTrainingManagerProps)
   )

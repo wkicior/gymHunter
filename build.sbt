@@ -6,6 +6,8 @@ scalaVersion := "2.13.1"
 
 lazy val akkaVersion = "2.5.25"
 
+enablePlugins(DockerPlugin, JavaAppPackaging)
+
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
@@ -20,3 +22,8 @@ libraryDependencies ++= Seq(
   "com.enragedginger" %% "akka-quartz-scheduler" % "1.8.1-akka-2.5.x",
   "com.github.tomakehurst" % "wiremock" % "2.25.1" % Test
 )
+
+version in Docker := "latest"
+dockerExposedPorts := Seq(8080)
+dockerBaseImage := "java"
+dockerExposedVolumes := Seq("/mnt/gymhunter-data")

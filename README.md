@@ -17,7 +17,19 @@ IFTT_KEY = private key for IFTT Webhooks notifications
 run
 ```$ ./sbt run```
 
+
+# Build
+```./sbt docker:publishLocal```
+
+local:
+
+```./sbt run```
+
 # Run
+
+```docker-compose up```
+
+
 ## Create TrainingHuntingSubscription
 ```curl -X POST \
   http://localhost:8080/api/training-hunting-subscriptions \
