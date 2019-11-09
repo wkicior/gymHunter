@@ -7,7 +7,7 @@ import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import com.github.wkicior.gymhunter.domain.notification.Notification
 import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender.SendNotification
-import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntId, TrainingToHuntProvider}
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId, TrainingHuntingSubscriptionProvider}
 import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.ProcessVacantTraining
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -21,12 +21,12 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
   override def afterAll: Unit = {
     shutdown(system)
   }
-  val trainingToHuntProviderProbe = TestProbe()
+  val thsProviderProbe = TestProbe()
   val slotsAvailableNotificationSenderProbe = TestProbe()
 
-  val trainingToHuntProviderProps = Props(new Actor {
+  val thsProviderProps = Props(new Actor {
     def receive: PartialFunction[Any, Unit] = {
-      case x => trainingToHuntProviderProbe.ref forward x
+      case x => thsProviderProbe.ref forward x
     }
   })
   val slotsAvailableNotificationSenderProps = Props(new Actor {
@@ -35,25 +35,25 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
     }
   })
 
-  private val trainingHunter = system.actorOf(VacantTrainingManager.props(trainingToHuntProviderProps, slotsAvailableNotificationSenderProps))
+  private val trainingHunter = system.actorOf(VacantTrainingManager.props(thsProviderProps, slotsAvailableNotificationSenderProps))
 
   "A VacantTrainingManager Actor" should {
-    """fetch all TrainingToHunt entities related to given Training
+    """fetch all TrainingHungingSubscription entities related to given Training
       |and send the notification command
     """.stripMargin in {
       //given
       val probe = TestProbe()
       val training = Training(1, 1, OffsetDateTime.now(), OffsetDateTime.now().plusDays(2))
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 1L, OffsetDateTime.now().plusDays(1), None)
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 1L, OffsetDateTime.now().plusDays(1), None)
 
       //when
       trainingHunter.tell(ProcessVacantTraining(training), probe.ref)
 
       //then
-      trainingToHuntProviderProbe.expectMsg(TrainingToHuntProvider.GetTrainingsToHuntByTrainingIdQuery(training.id))
-      trainingToHuntProviderProbe.reply(Set(trainingToHunt))
+      thsProviderProbe.expectMsg(TrainingHuntingSubscriptionProvider.GetTrainingHuntingSubscriptionsByTrainingIdQuery(training.id))
+      thsProviderProbe.reply(Set(ths))
 
-      slotsAvailableNotificationSenderProbe.expectMsg(SendNotification(Notification(training.start_date, trainingToHunt.clubId, trainingToHunt.id)))
+      slotsAvailableNotificationSenderProbe.expectMsg(SendNotification(Notification(training.start_date, ths.clubId, ths.id)))
     }
   }
 }

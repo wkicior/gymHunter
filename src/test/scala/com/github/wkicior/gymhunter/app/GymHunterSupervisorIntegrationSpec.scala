@@ -8,14 +8,14 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.wkicior.gymhunter.domain.notification.Notification
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntCommandHandler.CreateTrainingToHuntCommand
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.GetTrainingToHuntAggregate
-import com.github.wkicior.gymhunter.domain.tohunt._
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.CreateTrainingHuntingSubscriptionCommand
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId.OptionalTrainingHuntingSubscription
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence.GetTrainingHuntingSubscriptionAggregate
+import com.github.wkicior.gymhunter.domain.subscription._
 import com.github.wkicior.gymhunter.domain.training.Training
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.{GymsteerTrainingFetcher, TrainingResponse}
 import com.github.wkicior.gymhunter.infrastructure.iftt.{IFTTNotification, IFTTNotificationSender}
-import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingToHuntEventStore
+import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingHuntingSubscriptionEventStore
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -41,18 +41,18 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
   private val hostname = "localhost"
   private val wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(port))
 
-  private val trainingToHuntEventStore = system.actorOf(TrainingToHuntEventStore.props, "TrainingToHuntEventStore")
+  private val thsEventStore = system.actorOf(TrainingHuntingSubscriptionEventStore.props, "TrainingHuntingSubscriptionEventStore")
   private val trainingFetcher = system.actorOf(GymsteerTrainingFetcher.props, "GymsteerTrainingFetcher")
   private val ifttNotificationSender = system.actorOf(IFTTNotificationSender.props, "IFTTNotificationSender")
-  private val trainingToHuntCommandHandler = system.actorOf(TrainingToHuntCommandHandler.props(trainingToHuntEventStore))
+  private val thsCommandHandler = system.actorOf(TrainingHuntingSubscriptionCommandHandler.props(thsEventStore))
 
 
-  private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(trainingToHuntEventStore, trainingFetcher, ifttNotificationSender), "GymHunterSupervisorIntegrationTest")
+  private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(thsEventStore, trainingFetcher, ifttNotificationSender), "GymHunterSupervisorIntegrationTest")
   val postNotificationPath = "/trigger/gymhunter/with/key/test-key"
 
 
   "A GymHunterSupervisor Actor" should {
-    """get all trainings to hunt
+    """get all training hunting subscriptions
       |and send IFTT notifications if any training has slots available
     """.stripMargin in {
 
@@ -77,8 +77,8 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
             .withStatus(200)))
 
       val probe = TestProbe()
-      trainingToHuntCommandHandler.tell(CreateTrainingToHuntCommand(44L, 8L, OffsetDateTime.now().plusDays(1)), probe.ref)
-      val tth = probe.expectMsgType[TrainingToHunt]
+      thsCommandHandler.tell(CreateTrainingHuntingSubscriptionCommand(44L, 8L, OffsetDateTime.now().plusDays(1)), probe.ref)
+      val tth = probe.expectMsgType[TrainingHuntingSubscription]
 
       //when
       gymHunterSupervisor.tell(GymHunterSupervisor.RunGymHunting(), probe.ref)
@@ -86,8 +86,8 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
       //then
       Try(awaitCond(hasIfttBeenNotified(training))).orElse(Try.apply(verifyIfttBeenNotified(training))).get
 
-      trainingToHuntEventStore.tell(GetTrainingToHuntAggregate(tth.id), probe.ref)
-      val updateTthAggregate = probe.expectMsgType[OptionalTrainingToHunt[TrainingToHuntAggregate]]
+      thsEventStore.tell(GetTrainingHuntingSubscriptionAggregate(tth.id), probe.ref)
+      val updateTthAggregate = probe.expectMsgType[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
       updateTthAggregate.toOption.get.notificationOnSlotsAvailableSentTime should be <= OffsetDateTime.now
     }
   }
@@ -101,7 +101,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
   }
 
   private def ifttPost(training: Training) = {
-    val body: String = ifttNotificationFormat.write(new IFTTNotification(Notification(training.start_date, 8L, TrainingToHuntId()))).toString()
+    val body: String = ifttNotificationFormat.write(new IFTTNotification(Notification(training.start_date, 8L, TrainingHuntingSubscriptionId()))).toString()
     postRequestedFor(urlEqualTo(postNotificationPath))
       .withHeader("Content-Type", equalTo("application/json"))
       .withRequestBody(equalToJson(body))

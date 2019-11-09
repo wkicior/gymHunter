@@ -23,7 +23,7 @@ class SlotsAvailableNotificationSender(ifttNotificationSender: ActorRef) extends
 
   def receive: PartialFunction[Any, Unit] = {
     case SendNotification(notification) =>
-      log.info(s"will send IFTT notification for ${notification.trainingToHuntId}")
+      log.info(s"will send IFTT notification for ${notification.trainingHuntingSubscriptionId}")
       implicit val timeout: Timeout = Timeout(5 seconds)
       ask(ifttNotificationSender, new IFTTNotification(notification)).onComplete {
         case Success(_) => {

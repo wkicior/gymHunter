@@ -6,13 +6,11 @@ import java.time.OffsetDateTime
 import akka.actor.{Actor, ActorSystem, Props, Status}
 import akka.testkit.{TestKit, TestProbe}
 import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender.SendNotification
-import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntId}
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntId.OptionalTrainingToHunt
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.{GetAllTrainingsToHunt, GetTrainingToHunt}
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntProvider.{GetTrainingToHuntQuery, GetTrainingsToHuntByTrainingIdQuery, GetActiveTrainingsToHuntQuery}
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
+import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class SlotsAvailableNotificationSenderSpec(_system: ActorSystem) extends TestKit(_system) with Matchers with WordSpecLike with BeforeAndAfterAll with Inside {
@@ -40,7 +38,7 @@ class SlotsAvailableNotificationSenderSpec(_system: ActorSystem) extends TestKit
     """.stripMargin in {
       //given
       val probe = TestProbe()
-      val notification = Notification(OffsetDateTime.now, 1L, TrainingToHuntId())
+      val notification = Notification(OffsetDateTime.now, 1L, TrainingHuntingSubscriptionId())
       system.eventStream.subscribe(probe.ref, classOf[SlotsAvailableNotificationSentEvent])
       //when
       slotsAvailableNotificationSender.tell(SendNotification(notification), probe.ref)
@@ -60,7 +58,7 @@ class SlotsAvailableNotificationSenderSpec(_system: ActorSystem) extends TestKit
     """.stripMargin in {
       //given
       val probe = TestProbe()
-      val notification = Notification(OffsetDateTime.now, 2L, TrainingToHuntId())
+      val notification = Notification(OffsetDateTime.now, 2L, TrainingHuntingSubscriptionId())
       system.eventStream.subscribe(probe.ref, classOf[SlotsAvailableNotificationSentEvent])
       //when
       slotsAvailableNotificationSender.tell(SendNotification(notification), probe.ref)
@@ -69,7 +67,7 @@ class SlotsAvailableNotificationSenderSpec(_system: ActorSystem) extends TestKit
       ifttNotificationSenderProbe.expectMsg(new IFTTNotification(notification))
       ifttNotificationSenderProbe.reply(Status.Failure(new RuntimeException("test")))
 
-      probe.expectNoMessage()
+      probe.expectNoMessage(1 second)
     }
 
 

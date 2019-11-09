@@ -2,7 +2,7 @@ package com.github.wkicior.gymhunter.app
 
 import java.time.{OffsetDateTime, ZoneOffset}
 
-import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntId}
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId}
 import org.scalatest._
 import spray.json.{JsNumber, JsObject, JsString, JsonFormat}
 
@@ -28,34 +28,34 @@ class JsonProtocolSpec extends WordSpec with Matchers {
     }
 
     "write TrainingToHuntId value to JSON" in {
-      val trainingToHuntId = TrainingToHuntId()
+      val trainingToHuntId = TrainingHuntingSubscriptionId()
       val trainingToHuntJson = JsString(trainingToHuntId.toString)
-      val jf = implicitly[JsonFormat[TrainingToHuntId]]
+      val jf = implicitly[JsonFormat[TrainingHuntingSubscriptionId]]
       jf.write(trainingToHuntId) shouldBe trainingToHuntJson
     }
 
     "write TrainingToHunt value to JSON without notificationDateTime" in {
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now(), None)
+      val trainingToHunt = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now(), None)
       val trainingToHuntJson = JsObject(
         "id" -> JsString(trainingToHunt.id.toString),
         "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
         "clubId" -> JsNumber(trainingToHunt.clubId),
         "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime)
       )
-      val jf = implicitly[JsonFormat[TrainingToHunt]]
+      val jf = implicitly[JsonFormat[TrainingHuntingSubscription]]
       jf.write(trainingToHunt) shouldBe trainingToHuntJson
     }
 
-    "write TrainingToHunt value to JSON with notificationDateTime" in {
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 1L, 2L, OffsetDateTime.now, Some(OffsetDateTime.now))
+    "write TrainingHuntingSubscription value to JSON with notificationDateTime" in {
+      val trainingToHunt = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now, Some(OffsetDateTime.now))
       val trainingToHuntJson = JsObject(
         "id" -> JsString(trainingToHunt.id.toString),
         "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
         "clubId" -> JsNumber(trainingToHunt.clubId),
         "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime),
-        "notificationOnSlotsAvailableSentTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime)
+        "notificationOnSlotsAvailableSentDateTime" -> OffsetDateTimeFormat.write(trainingToHunt.notificationOnSlotsAvailableSentDateTime.get)
       )
-      val jf = implicitly[JsonFormat[TrainingToHunt]]
+      val jf = implicitly[JsonFormat[TrainingHuntingSubscription]]
       jf.write(trainingToHunt) shouldBe trainingToHuntJson
     }
   }

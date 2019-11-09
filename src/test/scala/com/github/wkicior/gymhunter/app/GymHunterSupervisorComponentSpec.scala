@@ -4,10 +4,11 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props, Status}
 import akka.testkit.{TestKit, TestProbe}
+import scala.concurrent.duration._
 import com.github.wkicior.gymhunter.domain.notification.Notification
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntAggregate.TrainingToHuntAdded
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntPersistence.{GetAllTrainingsToHunt, GetTrainingToHuntAggregate, StoreEvents}
-import com.github.wkicior.gymhunter.domain.tohunt._
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionAggregate.TrainingHuntingSubscriptionAdded
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence.{GetAllTrainingHuntingSubscriptions, GetTrainingHuntingSubscriptionAggregate, StoreEvents}
+import com.github.wkicior.gymhunter.domain.subscription._
 import com.github.wkicior.gymhunter.domain.training.{GetTraining, Training}
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -23,13 +24,13 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
     shutdown(system)
   }
 
-  val trainingToHuntEventStoreProbe = TestProbe()
+  val thsEventStoreProbe = TestProbe()
   val trainingFetcherProbe = TestProbe()
   val ifttNotificationSenderProbe = TestProbe()
 
-  val trainingToHuntEventStoreProps = Props(new Actor {
+  val thsEventStoreProps = Props(new Actor {
     def receive: PartialFunction[Any, Unit] = {
-      case x => trainingToHuntEventStoreProbe.ref forward x
+      case x => thsEventStoreProbe.ref forward x
     }
   })
 
@@ -45,107 +46,107 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
     }
   })
 
-  private val trainingToHuntEventStore = system.actorOf(trainingToHuntEventStoreProps, "TrainingToHuntEventStore")
+  private val thsEventStore = system.actorOf(thsEventStoreProps, "TrainingHuntingSubscriptionEventStore")
   private val trainingFetcher = system.actorOf(trainingFetcherProps, "GymsteerTrainingFetcher")
   private val ifttNotificationSender = system.actorOf(ifttNotificationSenderProps, "IFTTNotificationSender")
 
-  private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(trainingToHuntEventStore, trainingFetcher, ifttNotificationSender), "GymHunterSupervisorIntegrationTest")
+  private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(thsEventStore, trainingFetcher, ifttNotificationSender), "GymHunterSupervisorIntegrationTest")
 
   "A GymHunterSupervisor Actor" should {
     """start new hunting
-      |by fetching all trainings to hunt
+      |by fetching all training hunting subscriptions
       |and load training data for them
       |and notify users if slots are available on the training
     """.stripMargin in {
       //given
       val training = Training(42L, 1, OffsetDateTime.now().minusDays(1), OffsetDateTime.now.plusDays(1))
-      val trainingToHuntAddedEvent = TrainingToHuntAdded(TrainingToHuntId(), 42L, 9L, OffsetDateTime.now.plusDays(1))
-      val trainingToHunt = new TrainingToHuntAggregate(trainingToHuntAddedEvent) //creating from event in order to have clean events list
+      val thsAddedEvent = TrainingHuntingSubscriptionAdded(TrainingHuntingSubscriptionId(), 42L, 9L, OffsetDateTime.now.plusDays(1))
+      val ths = new TrainingHuntingSubscriptionAggregate(thsAddedEvent) //creating from event in order to have clean events list
       val probe = TestProbe()
 
       //when
       gymHunterSupervisor.tell(GymHunterSupervisor.RunGymHunting(), probe.ref)
 
       //then
-      trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt] // by TrainingHunter
-      trainingToHuntEventStoreProbe.reply(Set(trainingToHunt()))
+      thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions] // by TrainingHunter
+      thsEventStoreProbe.reply(Set(ths()))
 
       trainingFetcherProbe.expectMsg(GetTraining(42)) // by TrainingHunter
       trainingFetcherProbe.reply(training)
 
-      trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt] //by VacantTrainingManager
-      trainingToHuntEventStoreProbe.reply(Set(trainingToHunt()))
+      thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions] //by VacantTrainingManager
+      thsEventStoreProbe.reply(Set(ths()))
 
-      ifttNotificationSenderProbe.expectMsg(new IFTTNotification(Notification(training.start_date, trainingToHunt.clubId, trainingToHunt.id)))
+      ifttNotificationSenderProbe.expectMsg(new IFTTNotification(Notification(training.start_date, ths.clubId, ths.id)))
       ifttNotificationSenderProbe.reply(Status.Success)
 
-      trainingToHuntEventStoreProbe.expectMsg(GetTrainingToHuntAggregate(trainingToHunt.id)) //by TrainingSlotsAvailableNotificationSentEventHandler
-      trainingToHuntEventStoreProbe.reply(Right(trainingToHunt))
+      thsEventStoreProbe.expectMsg(GetTrainingHuntingSubscriptionAggregate(ths.id)) //by TrainingSlotsAvailableNotificationSentEventHandler
+      thsEventStoreProbe.reply(Right(ths))
 
-      trainingToHuntEventStoreProbe.expectMsg(StoreEvents(trainingToHunt.id, List(TrainingToHuntAggregate.TrainingToHuntNotificationSent(trainingToHunt.id))))
-      trainingToHunt.notificationOnSlotsAvailableSentTime should be <= OffsetDateTime.now
+      thsEventStoreProbe.expectMsg(StoreEvents(ths.id, List(TrainingHuntingSubscriptionAggregate.TrainingHuntingSubscriptionNotificationSent(ths.id))))
+      ths.notificationOnSlotsAvailableSentTime should be <= OffsetDateTime.now
     }
 
     """start new hunting
-      |by fetching all trainings to hunt
-      |and ignore trainingsToHunt which has been notified already
+      |by fetching all trainings hunting subscriptions
+      |and ignore training hunting subscriptions which has been notified already
     """.stripMargin in {
       //given
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 44L, 8L, OffsetDateTime.now.plusDays(1), Option(OffsetDateTime.now))
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 44L, 8L, OffsetDateTime.now.plusDays(1), Option(OffsetDateTime.now))
       val probe = TestProbe()
 
       //when
       gymHunterSupervisor.tell(GymHunterSupervisor.RunGymHunting(), probe.ref)
 
       //then
-      trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt]
-      trainingToHuntEventStoreProbe.reply(Set(trainingToHunt))
+      thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions]
+      thsEventStoreProbe.reply(Set(ths))
 
-      trainingFetcherProbe.expectNoMessage()
+      trainingFetcherProbe.expectNoMessage(1 second)
 
-      ifttNotificationSenderProbe.expectNoMessage()
+      ifttNotificationSenderProbe.expectNoMessage(1 second)
     }
 
     """start new hunting
-      |by fetching all trainings to hunt
+      |by fetching all trainings hunting subscriptions
       |and ignore trainings that cannot be booked
     """.stripMargin in {
       //given
       val training = Training(44L, 0, OffsetDateTime.now().minusDays(1), OffsetDateTime.now.plusDays(1))
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 44L, 7L, OffsetDateTime.now.plusDays(1), None)
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 44L, 7L, OffsetDateTime.now.plusDays(1), None)
       val probe = TestProbe()
 
       //when
       gymHunterSupervisor.tell(GymHunterSupervisor.RunGymHunting(), probe.ref)
 
       //then
-      trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt]
-      trainingToHuntEventStoreProbe.reply(Set(trainingToHunt))
+      thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions]
+      thsEventStoreProbe.reply(Set(ths))
 
 
       trainingFetcherProbe.expectMsg(GetTraining(44L))
       trainingFetcherProbe.reply(training)
 
-      ifttNotificationSenderProbe.expectNoMessage()
+      ifttNotificationSenderProbe.expectNoMessage(1 second)
     }
 
     """start new hunting
-      |by fetching all trainings to hunt
-      |and ignore trainingsToHunt for which huntingEndTime has passed
+      |by fetching all trainings trainings hunting subscriptions
+      |and ignore training hunting subscriptions for which huntingEndTime has passed
     """.stripMargin in {
       //given
-      val trainingToHunt = TrainingToHunt(TrainingToHuntId(), 44L, 6L, OffsetDateTime.now.minusDays(1), None)
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 44L, 6L, OffsetDateTime.now.minusDays(1), None)
       val probe = TestProbe()
 
       //when
       gymHunterSupervisor.tell(GymHunterSupervisor.RunGymHunting(), probe.ref)
 
       //then
-      trainingToHuntEventStoreProbe.expectMsgType[GetAllTrainingsToHunt]
-      trainingToHuntEventStoreProbe.reply(Set(trainingToHunt))
+      thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions]
+      thsEventStoreProbe.reply(Set(ths))
 
-      trainingFetcherProbe.expectNoMessage()
-      ifttNotificationSenderProbe.expectNoMessage()
+      trainingFetcherProbe.expectNoMessage(1 second)
+      ifttNotificationSenderProbe.expectNoMessage(1 second)
     }
   }
 }

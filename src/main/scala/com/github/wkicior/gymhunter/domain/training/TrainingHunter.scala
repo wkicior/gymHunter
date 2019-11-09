@@ -5,7 +5,7 @@ import akka.pattern.ask
 import akka.routing.RoundRobinPool
 import akka.util.Timeout
 import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.ProcessVacantTraining
-import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntProvider}
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionProvider}
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender
 
 import scala.concurrent.duration._
@@ -14,25 +14,25 @@ import scala.language.postfixOps
 
 
 object TrainingHunter {
-  private [gymhunter] def props(trainingToHuntEventStore: ActorRef, trainingFetcher: ActorRef, ifttNotifiationSender: ActorRef): Props = Props(new TrainingHunter(TrainingToHuntProvider.props(trainingToHuntEventStore), trainingFetcher, VacantTrainingManager.props(trainingToHuntEventStore, ifttNotifiationSender)))
+  private [gymhunter] def props(thsEventStore: ActorRef, trainingFetcher: ActorRef, ifttNotifiationSender: ActorRef): Props = Props(new TrainingHunter(TrainingHuntingSubscriptionProvider.props(thsEventStore), trainingFetcher, VacantTrainingManager.props(thsEventStore, ifttNotifiationSender)))
   private [training] def props(trainingHunterProps: Props, trainingFetcher: ActorRef, vacantTrainingManagerProps: Props): Props = Props(
     new TrainingHunter(trainingHunterProps, trainingFetcher, vacantTrainingManagerProps)
   )
   final case class Hunt()
 }
 
-class TrainingHunter(trainingToHuntProviderProps: Props, trainingFetcher: ActorRef, vacantTrainingManagerProps: Props) extends Actor with ActorLogging {
+class TrainingHunter(thsProviderProps: Props, trainingFetcher: ActorRef, vacantTrainingManagerProps: Props) extends Actor with ActorLogging {
   import TrainingHunter._
-  import TrainingToHuntProvider._
+  import TrainingHuntingSubscriptionProvider._
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 
-  val trainingToHuntProvider: ActorRef = context.actorOf(trainingToHuntProviderProps, "trainingToHuntProvider")
+  val trainingHuntingSubscriptionProvider: ActorRef = context.actorOf(thsProviderProps, "trainingHuntingSubscriptionProvider")
   val vacantTrainingManager: ActorRef = context.actorOf(RoundRobinPool(5).props(vacantTrainingManagerProps), "vacantTrainingManager")
 
   def receive: PartialFunction[Any, Unit] = {
     case Hunt() =>
       log.info("hunting begins...")
-      getTrainingsToHunt
+      getSubscriptions
         .map(trainings => trainings.map(training => getTraining(training.externalSystemId)))
         .flatMap(trainingFutures => Future.sequence(trainingFutures))
         .foreach(trainings => {
@@ -44,9 +44,9 @@ class TrainingHunter(trainingToHuntProviderProps: Props, trainingFetcher: ActorR
       log.error("unrecognized message")
   }
 
-  private def getTrainingsToHunt: Future[Set[TrainingToHunt]] = {
+  private def getSubscriptions: Future[Set[TrainingHuntingSubscription]] = {
     implicit val timeout: Timeout = Timeout(5 seconds)
-    ask(trainingToHuntProvider, GetActiveTrainingsToHuntQuery()).mapTo[Set[TrainingToHunt]]
+    ask(trainingHuntingSubscriptionProvider, GetActiveTrainingHuntingSubscriptionsQuery()).mapTo[Set[TrainingHuntingSubscription]]
   }
 
   private def getTraining(id: Long): Future[Training] = {

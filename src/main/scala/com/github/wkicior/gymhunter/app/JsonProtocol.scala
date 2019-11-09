@@ -5,8 +5,8 @@ import java.time.format.DateTimeFormatter
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import com.github.wkicior.gymhunter.domain.training._
-import com.github.wkicior.gymhunter.domain.tohunt.TrainingToHuntCommandHandler.CreateTrainingToHuntCommand
-import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntId}
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.CreateTrainingHuntingSubscriptionCommand
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId}
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.TrainingResponse
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
 import spray.json.{JsString, JsValue, _}
@@ -22,17 +22,17 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
     }
   }
 
-  implicit object TrainingToHuntIdFormat extends RootJsonFormat[TrainingToHuntId] {
-    def write(trainingToHuntId: TrainingToHuntId) = JsString(trainingToHuntId.toString)
-    def read(value: JsValue): TrainingToHuntId = value match {
-      case JsString(trainingToHuntId) => TrainingToHuntId(trainingToHuntId)
-      case _ => deserializationError("TrainingToHuntId expected.")
+  implicit object TrainingHuntingSubscriptionIdFormat extends RootJsonFormat[TrainingHuntingSubscriptionId] {
+    def write(trainingHuntingSubscriptionId: TrainingHuntingSubscriptionId) = JsString(trainingHuntingSubscriptionId.toString)
+    def read(value: JsValue): TrainingHuntingSubscriptionId = value match {
+      case JsString(id) => TrainingHuntingSubscriptionId(id)
+      case _ => deserializationError("TrainingHuntingSubscriptionId expected.")
     }
   }
 
   implicit val trainingFormat: RootJsonFormat[Training] = jsonFormat4(Training)
   implicit val trainingResponseFormat: RootJsonFormat[TrainingResponse] = jsonFormat1(TrainingResponse)
-  implicit val trainingToHuntFormat: RootJsonFormat[TrainingToHunt] = jsonFormat5(TrainingToHunt)
-  implicit val trainingToHuntRequestFormat: RootJsonFormat[CreateTrainingToHuntCommand] = jsonFormat3(CreateTrainingToHuntCommand)
+  implicit val trainingHuntingSubscriptionFormat: RootJsonFormat[TrainingHuntingSubscription] = jsonFormat5(TrainingHuntingSubscription)
+  implicit val trainingHuntingSubscriptionRequestFormat: RootJsonFormat[CreateTrainingHuntingSubscriptionCommand] = jsonFormat3(CreateTrainingHuntingSubscriptionCommand)
   implicit val ifttNotificationFormat: RootJsonFormat[IFTTNotification] = jsonFormat2(IFTTNotification)
 }

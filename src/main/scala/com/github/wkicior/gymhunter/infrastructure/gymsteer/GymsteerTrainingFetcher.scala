@@ -32,7 +32,6 @@ class GymsteerTrainingFetcher extends Actor with ActorLogging {
       responseFuture
         .flatMap {
           case response@HttpResponse(StatusCodes.OK, _, _, _) =>
-            //val x = response.discardEntityBytes()
             Unmarshal(response).to[TrainingResponse]
           case _ => sys.error("something wrong")
         }

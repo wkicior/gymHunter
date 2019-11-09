@@ -4,7 +4,7 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.tohunt.{TrainingToHunt, TrainingToHuntId, TrainingToHuntProvider}
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId, TrainingHuntingSubscriptionProvider}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -18,7 +18,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
   override def afterAll: Unit = {
     shutdown(system)
   }
-  val trainingToHuntProviderProbe = TestProbe()
+  val thsProviderProbe = TestProbe()
   val trainingFetcherProbe = TestProbe()
   val vacantTrainingManagerProbe = TestProbe()
 
@@ -28,9 +28,9 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
     }
   })
 
-  val trainingToHuntFetcherProps = Props(new Actor {
+  val thsFetcherProps = Props(new Actor {
     def receive: PartialFunction[Any, Unit] = {
-      case x => trainingToHuntProviderProbe.ref forward x
+      case x => thsProviderProbe.ref forward x
     }
   })
   val vacantTrainingManagerProps = Props(new Actor {
@@ -40,7 +40,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
   })
 
   private val trainingFetcher = system.actorOf(trainingFetcherProps)
-  private val trainingHunter = system.actorOf(TrainingHunter.props(trainingToHuntFetcherProps, trainingFetcher, vacantTrainingManagerProps))
+  private val trainingHunter = system.actorOf(TrainingHunter.props(thsFetcherProps, trainingFetcher, vacantTrainingManagerProps))
 
   "A TrainingHunter Actor" should {
     """ask trainingFetcher for all tracked training ids
@@ -54,8 +54,8 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetActiveTrainingsToHuntQuery]
-      trainingToHuntProviderProbe.reply(Set())
+      thsProviderProbe.expectMsgType[TrainingHuntingSubscriptionProvider.GetActiveTrainingHuntingSubscriptionsQuery]
+      thsProviderProbe.reply(Set())
 
       trainingFetcherProbe.expectNoMessage()
       vacantTrainingManagerProbe.expectNoMessage()
@@ -73,8 +73,8 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetActiveTrainingsToHuntQuery]
-      trainingToHuntProviderProbe.reply(Set(TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now, None)))
+      thsProviderProbe.expectMsgType[TrainingHuntingSubscriptionProvider.GetActiveTrainingHuntingSubscriptionsQuery]
+      thsProviderProbe.reply(Set(TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 42, 8, OffsetDateTime.now, None)))
 
       trainingFetcherProbe.expectMsg(GetTraining(42L))
       trainingFetcherProbe.reply(sampleNonVacantTraining)
@@ -94,8 +94,8 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
 
       //then
-      trainingToHuntProviderProbe.expectMsgType[TrainingToHuntProvider.GetActiveTrainingsToHuntQuery]
-      trainingToHuntProviderProbe.reply(Set(TrainingToHunt(TrainingToHuntId(), 42, 8, OffsetDateTime.now, None)))
+      thsProviderProbe.expectMsgType[TrainingHuntingSubscriptionProvider.GetActiveTrainingHuntingSubscriptionsQuery]
+      thsProviderProbe.reply(Set(TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 42, 8, OffsetDateTime.now, None)))
 
       trainingFetcherProbe.expectMsg(GetTraining(42L))
       trainingFetcherProbe.reply(sampleVacantTraining)
