@@ -8,38 +8,34 @@ Webhook Notification on IFTT (https://github.com/hossman/ifttt-trigger)
 
 event name: ```gymhunter```
 
-Message: ```Training {{Value1}} has slots available in club: {{Value2}} ({{OccurredAt}})```
+Sample message: ```Training {{Value1}} has slots available in club: {{Value2}} ({{OccurredAt}})```
 
 ## Required environment variables
 GYMHUNTER_PASSWORD - password for basic auth requests
 IFTT_KEY = private key for IFTT Webhooks notifications
+GYMHUNTER_STORE_DIR - directory for journal and snapshots storage
  
-##run
+##run locally
 ```$ ./sbt run```
 
 
-## Build
+## Build docker image
 ```./sbt docker:publishLocal```
 
-local:
 
-```./sbt run```
-
-### Run locally
+### Run docker locally
 
 ```docker-compose up```
 
 #Prod setup
-###create machine:
+###create machine (sample):
 ```docker-machine create --driver digitalocean --digitalocean-access-token=[TOKEN] --digitalocean-size s-1vcpu-1gb --digitalocean-region fra1 --digitalocean-image fedora-30-x64 gymhunter-droplet```
 
-###show machine env:
+###show machine env and switch to machine:
 ```docker-machine env gymhunter```
-
-###switch to machine
 ```eval $(docker-machine env gymhunter-droplet)```
 
-###Build
+###Build image and publish to machine
 ```./sbt docker:publishLocal```
 
 ###deploy:

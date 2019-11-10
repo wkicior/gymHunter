@@ -20,4 +20,6 @@ services:
       - IFTT_KEY
       - GYMHUNTER_PASSWORD
       - GYMHUNTER_STORAGE_DIR=/mnt/gymhunter-data
+      - GYMHUNTER_SCHEDULER=0 * * ? * *
+      - TZ=Europe/Warsaw
 
