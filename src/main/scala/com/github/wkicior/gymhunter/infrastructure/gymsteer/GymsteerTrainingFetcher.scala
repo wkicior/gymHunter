@@ -38,7 +38,7 @@ class GymsteerTrainingFetcher(hostname: String) extends Actor with ActorLogging 
               Unmarshal(response).to[TrainingResponse].recoverWith {
                 case ex: DeserializationException =>
                   val msg = s"Could not deserialize the response: ${ex.getMessage}"
-                  log.error(msg, ex)
+                  log.error(msg)
                   Future.failed(GymsteerTrainingFetcherException(msg))
               }
 

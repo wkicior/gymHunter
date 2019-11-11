@@ -1,11 +1,14 @@
 package com.github.wkicior.gymhunter.domain.training
 
+import java.time.OffsetDateTime
+
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.ask
 import akka.routing.RoundRobinPool
 import akka.util.Timeout
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionProvider}
 import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.ProcessVacantTraining
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerTrainingFetcherException
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
@@ -37,6 +40,8 @@ class TrainingHunter(thsProviderProps: Props, trainingFetcher: ActorRef, vacantT
         .flatMap(trainingFutures => Future.sequence(trainingFutures))
         .foreach(trainings => {
           trainings
+            .filter(t => t.isDefined)
+            .map(t => t.get)
             .filter(training => training.canBeBooked)
             .foreach(training =>  vacantTrainingManager ! ProcessVacantTraining(training))
         })
@@ -49,8 +54,12 @@ class TrainingHunter(thsProviderProps: Props, trainingFetcher: ActorRef, vacantT
     ask(trainingHuntingSubscriptionProvider, GetActiveTrainingHuntingSubscriptionsQuery()).mapTo[Set[TrainingHuntingSubscription]]
   }
 
-  private def getTraining(id: Long): Future[Training] = {
+  private def getTraining(id: Long): Future[Option[Training]] = {
     implicit val timeout: Timeout = Timeout(10 seconds)
-    ask(trainingFetcher, GetTraining(id)).mapTo[Training]
+    ask(trainingFetcher, GetTraining(id)).mapTo[Training].map(t => Some(t)).recover {
+      case ex: Exception =>
+        log.warning(s"error on getting training $id ($ex), ignoring the training")
+        Option.empty[Training]
+    }
   }
 }

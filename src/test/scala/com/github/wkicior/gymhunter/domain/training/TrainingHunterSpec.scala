@@ -2,9 +2,11 @@ package com.github.wkicior.gymhunter.domain.training
 
 import java.time.OffsetDateTime
 
+import akka.actor.Status.Failure
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId, TrainingHuntingSubscriptionProvider}
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerTrainingFetcherException
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -96,6 +98,32 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       //then
       thsProviderProbe.expectMsgType[TrainingHuntingSubscriptionProvider.GetActiveTrainingHuntingSubscriptionsQuery]
       thsProviderProbe.reply(Set(TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 42, 8, OffsetDateTime.now, None)))
+
+      trainingFetcherProbe.expectMsg(GetTraining(42L))
+      trainingFetcherProbe.reply(sampleVacantTraining)
+
+      vacantTrainingManagerProbe.expectMsg(VacantTrainingManager.ProcessVacantTraining(sampleVacantTraining))
+    }
+
+    """ask trainingFetcher for all tracked training ids
+      |ask for training details on given Id
+      |notify vacantTrainingManager on vacant training only those training which fetching has been successful
+    """.stripMargin in {
+      //given
+      val probe = TestProbe()
+      val sampleVacantTraining = Training(42L, 1, OffsetDateTime.now(), OffsetDateTime.now().plusDays(2))
+
+      //when
+      trainingHunter.tell(TrainingHunter.Hunt(), probe.ref)
+
+      //then
+      thsProviderProbe.expectMsgType[TrainingHuntingSubscriptionProvider.GetActiveTrainingHuntingSubscriptionsQuery]
+      thsProviderProbe.reply(
+        Set(TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 43, 8, OffsetDateTime.now, None),
+          TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 42, 8, OffsetDateTime.now, None)))
+
+      trainingFetcherProbe.expectMsg(GetTraining(43L))
+      trainingFetcherProbe.reply(Failure(GymsteerTrainingFetcherException("some error on getting the training")))
 
       trainingFetcherProbe.expectMsg(GetTraining(42L))
       trainingFetcherProbe.reply(sampleVacantTraining)
