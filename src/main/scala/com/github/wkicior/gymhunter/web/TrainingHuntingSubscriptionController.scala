@@ -11,7 +11,7 @@ import akka.util.Timeout
 import com.github.wkicior.gymhunter.app.Settings
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.{CreateTrainingHuntingSubscriptionCommand, DeleteTrainingHuntingSubscriptionCommand}
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId.OptionalTrainingHuntingSubscription
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionProvider.{GetActiveTrainingHuntingSubscriptionsQuery, GetAllTrainingHuntingSubscriptionsQuery}
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionProvider.GetAllTrainingHuntingSubscriptionsQuery
 import com.github.wkicior.gymhunter.domain.subscription._
 
 import scala.concurrent.Future

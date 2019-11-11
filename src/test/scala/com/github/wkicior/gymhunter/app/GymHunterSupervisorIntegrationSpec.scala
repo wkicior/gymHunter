@@ -42,7 +42,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
   private val wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(port))
 
   private val thsEventStore = system.actorOf(TrainingHuntingSubscriptionEventStore.props, "TrainingHuntingSubscriptionEventStore")
-  private val trainingFetcher = system.actorOf(GymsteerTrainingFetcher.props, "GymsteerTrainingFetcher")
+  private val trainingFetcher = system.actorOf(GymsteerTrainingFetcher.props("http://localhost:8081"), "GymsteerTrainingFetcher")
   private val ifttNotificationSender = system.actorOf(IFTTNotificationSender.props, "IFTTNotificationSender")
   private val thsCommandHandler = system.actorOf(TrainingHuntingSubscriptionCommandHandler.props(thsEventStore))
 

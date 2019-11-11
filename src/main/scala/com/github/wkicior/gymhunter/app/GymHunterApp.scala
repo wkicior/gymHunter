@@ -23,8 +23,10 @@ object GymHunterApp extends App {
 
   log.info("Initializing GymHunter Supervisor Scheduler...")
   val scheduler = QuartzSchedulerExtension(system)
+  val settings: SettingsImpl = Settings(system)
+
   val trainingHuntingSubscriptionEventStore = system.actorOf(TrainingHuntingSubscriptionEventStore.props, "TrainingHuntingSubscriptionEventStore")
-  val gymsteerTrainingFetcher = system.actorOf(RoundRobinPool(8).props(GymsteerTrainingFetcher.props), "GymsteerTrainingFetcher")
+  val gymsteerTrainingFetcher = system.actorOf(RoundRobinPool(8).props(GymsteerTrainingFetcher.props(settings.gymsteerHost)), "GymsteerTrainingFetcher")
   val ifttNotificationSender = system.actorOf(IFTTNotificationSender.props, "IFTTNotificationSender")
   val supervisor: ActorRef = system.actorOf(GymHunterSupervisor.props(trainingHuntingSubscriptionEventStore, gymsteerTrainingFetcher, ifttNotificationSender), "GymHunterSupervisor")
   scheduler.schedule("GymHunterSupervisorScheduler", supervisor, RunGymHunting())
