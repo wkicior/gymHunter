@@ -57,7 +57,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
     """.stripMargin in {
 
       //given
-      val training = Training(44L, 1, OffsetDateTime.now().minusDays(1), OffsetDateTime.now().plusDays(1))
+      val training = Training(44L, 1, Some(OffsetDateTime.now().minusDays(1)), OffsetDateTime.now().plusDays(1))
       val trainingResponse = TrainingResponse(training)
       val getTrainingPath = s"/api/clubs/8/trainings/${training.id}"
 

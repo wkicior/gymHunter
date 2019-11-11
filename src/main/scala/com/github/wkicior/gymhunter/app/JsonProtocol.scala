@@ -11,7 +11,7 @@ import com.github.wkicior.gymhunter.infrastructure.gymsteer.TrainingResponse
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
 import spray.json.{JsString, JsValue, _}
 
-object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
+object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport with NullOptions {
 
   implicit object OffsetDateTimeFormat extends RootJsonFormat[OffsetDateTime] {
     private val offsetDateTimeFormat = "yyyy-MM-dd'T'HH:mm:ssx"
@@ -29,6 +29,7 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
       case _ => deserializationError("TrainingHuntingSubscriptionId expected.")
     }
   }
+
 
   implicit val trainingFormat: RootJsonFormat[Training] = jsonFormat4(Training)
   implicit val trainingResponseFormat: RootJsonFormat[TrainingResponse] = jsonFormat1(TrainingResponse)

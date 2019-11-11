@@ -43,7 +43,7 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
     """.stripMargin in {
       //given
       val probe = TestProbe()
-      val training = Training(1, 1, OffsetDateTime.now(), OffsetDateTime.now().plusDays(2))
+      val training = Training(1, 1, Some(OffsetDateTime.now()), OffsetDateTime.now().plusDays(2))
       val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 1L, OffsetDateTime.now().plusDays(1), None)
 
       //when

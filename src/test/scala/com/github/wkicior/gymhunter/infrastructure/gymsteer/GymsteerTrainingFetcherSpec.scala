@@ -1,6 +1,8 @@
 package com.github.wkicior.gymhunter.infrastructure.gymsteer
 
 
+import java.time.OffsetDateTime
+
 import akka.actor.ActorSystem
 import akka.actor.Status.Failure
 import akka.testkit.{TestKit, TestProbe}
@@ -97,13 +99,30 @@ class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system)
       |}
     """.stripMargin
 
+  val sampleValidResponseWithoutBookingsOpenAt =
+    """
+      |{
+      |  "training": {
+      |    "slotsAvailable": 7,
+      |    "id": 42,
+      |    "club": {
+      |      "id": 8,
+      |      "name": "XXX"
+      |    },
+      |    "sportsmanLimit": 16,
+      |    "start_date": "2019-11-15T16:30:00+0100",
+      |    "end_date": "2019-11-15T17:30:00+0100"
+      |  }
+      |}
+    """.stripMargin
+
 
   "A GymsteerTrainingFetcher Actor" should {
     """get training from external service
       |and return it as Training value object
     """.stripMargin in {
       //given
-      val training = Training(42, 7, OffsetDateTimeFormat.read(JsString("2019-11-08T16:30:00+0100")), OffsetDateTimeFormat.read(JsString("2019-11-15T16:30:00+0100")))
+      val training = Training(42, 7, Some(OffsetDateTimeFormat.read(JsString("2019-11-08T16:30:00+0100"))), OffsetDateTimeFormat.read(JsString("2019-11-15T16:30:00+0100")))
       val getTrainingPath = s"/api/clubs/8/trainings/${training.id}"
 
       wireMockServer.stubFor(
@@ -122,11 +141,34 @@ class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system)
       probe.expectMsg(training)
     }
 
+    """get training with no bookings_open_at property from external service
+      |and return it as Training value object
+    """.stripMargin in {
+      //given
+      val training = Training(42, 7, Option.empty[OffsetDateTime], OffsetDateTimeFormat.read(JsString("2019-11-15T16:30:00+0100")))
+      val getTrainingPath = s"/api/clubs/8/trainings/${training.id}"
+
+      wireMockServer.stubFor(
+        get(urlPathEqualTo(getTrainingPath))
+          .willReturn(aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(sampleValidResponseWithoutBookingsOpenAt)
+            .withStatus(200)))
+
+      val probe = TestProbe()
+
+      //when
+      gymHunterSupervisor.tell(GetTraining(training.id), probe.ref)
+
+      //then
+      probe.expectMsg(training)
+    }
+
     """get training from external service
       |and fail if response can't be deserialized
     """.stripMargin in {
       //given
-      val training = Training(42, 7, OffsetDateTimeFormat.read(JsString("2019-11-08T16:30:00+0100")), OffsetDateTimeFormat.read(JsString("2019-11-15T16:30:00+0100")))
+      val training = Training(42, 7, Some(OffsetDateTimeFormat.read(JsString("2019-11-08T16:30:00+0100"))), OffsetDateTimeFormat.read(JsString("2019-11-15T16:30:00+0100")))
       val getTrainingPath = s"/api/clubs/8/trainings/${training.id}"
 
       wireMockServer.stubFor(

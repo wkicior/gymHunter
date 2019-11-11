@@ -3,8 +3,9 @@ package com.github.wkicior.gymhunter.app
 import java.time.{OffsetDateTime, ZoneOffset}
 
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId}
+import com.github.wkicior.gymhunter.domain.training.Training
 import org.scalatest._
-import spray.json.{JsNumber, JsObject, JsString, JsonFormat}
+import spray.json.{JsNull, JsNumber, JsObject, JsString, JsonFormat}
 
 import scala.language.postfixOps
 
@@ -40,7 +41,8 @@ class JsonProtocolSpec extends WordSpec with Matchers {
         "id" -> JsString(trainingToHunt.id.toString),
         "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
         "clubId" -> JsNumber(trainingToHunt.clubId),
-        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime)
+        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime),
+        "notificationOnSlotsAvailableSentDateTime" -> JsNull
       )
       val jf = implicitly[JsonFormat[TrainingHuntingSubscription]]
       jf.write(trainingToHunt) shouldBe trainingToHuntJson
@@ -58,5 +60,31 @@ class JsonProtocolSpec extends WordSpec with Matchers {
       val jf = implicitly[JsonFormat[TrainingHuntingSubscription]]
       jf.write(trainingToHunt) shouldBe trainingToHuntJson
     }
+
+    "read full Training value from JSON" in {
+      val date = OffsetDateTime.of(2019, 10, 10, 7, 15, 0, 0, ZoneOffset.of("+02:00"))
+
+      val training = Training(1, 2, Some(date), date)
+      val trainingJson = JsObject(
+        "id" -> JsNumber(1),
+        "slotsAvailable" -> JsNumber(2),
+        "bookings_open_at" -> JsString("2019-10-10T07:15:00+0200"),
+        "start_date" -> JsString("2019-10-10T07:15:00+0200")
+      )
+      val jf = implicitly[JsonFormat[Training]]
+      jf.read(trainingJson) shouldBe training
+    }
+  }
+
+  "read Training value from JSON without bookings_open_at" in {
+    val date = OffsetDateTime.of(2019, 10, 10, 7, 15, 0, 0, ZoneOffset.of("+02:00"))
+    val training = Training(1, 2, Option.empty, date)
+    val trainingJson = JsObject(
+      "id" -> JsNumber(1),
+      "slotsAvailable" -> JsNumber(2),
+      "start_date" -> JsString("2019-10-10T07:15:00+0200")
+    )
+    val jf = implicitly[JsonFormat[Training]]
+    jf.read(trainingJson) shouldBe training
   }
 }

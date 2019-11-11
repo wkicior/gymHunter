@@ -59,7 +59,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       |and notify users if slots are available on the training
     """.stripMargin in {
       //given
-      val training = Training(42L, 1, OffsetDateTime.now().minusDays(1), OffsetDateTime.now.plusDays(1))
+      val training = Training(42L, 1, Some(OffsetDateTime.now().minusDays(1)), OffsetDateTime.now.plusDays(1))
       val thsAddedEvent = TrainingHuntingSubscriptionAdded(TrainingHuntingSubscriptionId(), 42L, 9L, OffsetDateTime.now.plusDays(1))
       val ths = new TrainingHuntingSubscriptionAggregate(thsAddedEvent) //creating from event in order to have clean events list
       val probe = TestProbe()
@@ -112,7 +112,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       |and ignore trainings that cannot be booked
     """.stripMargin in {
       //given
-      val training = Training(44L, 0, OffsetDateTime.now().minusDays(1), OffsetDateTime.now.plusDays(1))
+      val training = Training(44L, 0, Some(OffsetDateTime.now().minusDays(1)), OffsetDateTime.now.plusDays(1))
       val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 44L, 7L, OffsetDateTime.now.plusDays(1), None)
       val probe = TestProbe()
 
