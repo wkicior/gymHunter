@@ -92,7 +92,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       |and ignore training hunting subscriptions which has been notified already
     """.stripMargin in {
       //given
-      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 44L, 8L, OffsetDateTime.now.plusDays(1), Option(OffsetDateTime.now))
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 44L, 8L, OffsetDateTime.now.plusDays(1), Option(OffsetDateTime.now), None)
       val probe = TestProbe()
 
       //when

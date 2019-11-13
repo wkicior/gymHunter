@@ -42,7 +42,24 @@ class TrainingHuntingSubscriptionCommandHandlerSpec(_system: ActorSystem) extend
 
       //then
       thsEventStoreProbe.expectMsgPF() {
-        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAdded(_, 1L, 2L, createThsCommand.huntingEndTime))) => ok
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAdded(_, 1L, 2L, createThsCommand.huntingEndTime, None))) => ok
+      }
+      thsEventStoreProbe.reply(Right(sampleThs))
+
+      val response = probe.expectMsgType[TrainingHuntingSubscription]
+      response shouldEqual sampleThs()
+    }
+
+    "create new TrainingHuntingSubscription with booking auto deadline and store it to the event store" in {
+      //given
+      val createThsCommand = CreateTrainingHuntingSubscriptionCommand(1L, 2L, OffsetDateTime.now, Some(OffsetDateTime.now))
+      val sampleThs = new TrainingHuntingSubscriptionAggregate(TrainingHuntingSubscriptionId(), 1L, 2L, createThsCommand.huntingEndTime, createThsCommand.autoBookingDeadline)
+      //when
+      thsCommandHandler.tell(createThsCommand, probe.ref)
+
+      //then
+      thsEventStoreProbe.expectMsgPF() {
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAdded(_, 1L, 2L, createThsCommand.huntingEndTime, createThsCommand.autoBookingDeadline))) => ok
       }
       thsEventStoreProbe.reply(Right(sampleThs))
 

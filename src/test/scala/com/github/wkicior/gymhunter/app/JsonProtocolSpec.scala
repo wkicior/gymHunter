@@ -35,27 +35,30 @@ class JsonProtocolSpec extends WordSpec with Matchers {
       jf.write(trainingToHuntId) shouldBe trainingToHuntJson
     }
 
-    "write TrainingToHunt value to JSON without notificationDateTime" in {
-      val trainingToHunt = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now(), None)
+    "write TrainingToHunt value to JSON without notificationDateTime nor autoBookingDeadline" in {
+      val trainingToHunt = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now(), None, None)
       val trainingToHuntJson = JsObject(
         "id" -> JsString(trainingToHunt.id.toString),
         "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
         "clubId" -> JsNumber(trainingToHunt.clubId),
         "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime),
-        "notificationOnSlotsAvailableSentDateTime" -> JsNull
+        "notificationOnSlotsAvailableSentDateTime" -> JsNull,
+        "autoBookingDeadline" -> JsNull
       )
       val jf = implicitly[JsonFormat[TrainingHuntingSubscription]]
       jf.write(trainingToHunt) shouldBe trainingToHuntJson
     }
 
-    "write TrainingHuntingSubscription value to JSON with notificationDateTime" in {
-      val trainingToHunt = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now, Some(OffsetDateTime.now))
+    "write TrainingHuntingSubscription value to JSON with notificationDateTime and autoBookingDeadline" in {
+      val trainingToHunt = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now, Some(OffsetDateTime.now), Some(OffsetDateTime.now))
       val trainingToHuntJson = JsObject(
         "id" -> JsString(trainingToHunt.id.toString),
         "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
         "clubId" -> JsNumber(trainingToHunt.clubId),
         "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime),
-        "notificationOnSlotsAvailableSentDateTime" -> OffsetDateTimeFormat.write(trainingToHunt.notificationOnSlotsAvailableSentDateTime.get)
+        "notificationOnSlotsAvailableSentDateTime" -> OffsetDateTimeFormat.write(trainingToHunt.notificationOnSlotsAvailableSentDateTime.get),
+        "autoBookingDeadline" -> OffsetDateTimeFormat.write(trainingToHunt.autoBookingDeadline.get)
+
       )
       val jf = implicitly[JsonFormat[TrainingHuntingSubscription]]
       jf.write(trainingToHunt) shouldBe trainingToHuntJson

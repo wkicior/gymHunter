@@ -46,12 +46,32 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
       Post("/api/training-hunting-subscriptions", CreateTrainingHuntingSubscriptionCommand(123, 8, endOfHuntDatetime)) ~> addCredentials(validCredentials) ~> routes ~> check {
         status shouldEqual StatusCodes.Created
         val ths = responseAs[TrainingHuntingSubscription]
-        inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime) =>
+        inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
             id.toString should not be empty
             externalSystemId shouldEqual 123
             clubId shouldEqual 8
             huntingEndTime shouldEqual endOfHuntDatetime
             notificationOnSlotsAvailableSentTime shouldBe None
+            autoBookingDeadline shouldBe None
+        }
+        Get("/api/training-hunting-subscriptions") ~> addCredentials(validCredentials) ~> routes ~> check {
+          responseAs[Seq[TrainingHuntingSubscription]] should contain (ths)
+        }
+      }
+    }
+
+    "save new training hunting subscription with auto booking option and be able to return it" in {
+      val date = OffsetDateTime.of(2019, 11, 1, 14, 0, 0, 0, ZoneOffset.UTC)
+      Post("/api/training-hunting-subscriptions", CreateTrainingHuntingSubscriptionCommand(123, 8, date, Some(date))) ~> addCredentials(validCredentials) ~> routes ~> check {
+        status shouldEqual StatusCodes.Created
+        val ths = responseAs[TrainingHuntingSubscription]
+        inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
+          id.toString should not be empty
+          externalSystemId shouldEqual 123
+          clubId shouldEqual 8
+          huntingEndTime shouldEqual date
+          notificationOnSlotsAvailableSentTime shouldBe None
+          autoBookingDeadline shouldBe Some(date)
         }
         Get("/api/training-hunting-subscriptions") ~> addCredentials(validCredentials) ~> routes ~> check {
           responseAs[Seq[TrainingHuntingSubscription]] should contain (ths)
@@ -62,7 +82,7 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
     "return already saved training hunting subscriptions" in {
       Get("/api/training-hunting-subscriptions") ~> addCredentials(validCredentials) ~> routes ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[Seq[TrainingHuntingSubscription]].size shouldEqual 1
+        responseAs[Seq[TrainingHuntingSubscription]].size shouldEqual 2
       }
     }
 
@@ -74,12 +94,13 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
         Delete(s"/api/training-hunting-subscriptions/${ths.id}") ~> addCredentials(validCredentials) ~> routes ~> check {
           status shouldEqual StatusCodes.OK
           val deletedThs = responseAs[TrainingHuntingSubscription]
-          inside(deletedThs) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime) =>
+          inside(deletedThs) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
             id.toString should not be empty
             externalSystemId shouldEqual 124
             clubId shouldEqual 8
             huntingEndTime shouldEqual endOfHuntDatetime
             notificationOnSlotsAvailableSentTime shouldBe None
+            autoBookingDeadline shouldBe None
           }
 
           Get("/api/training-hunting-subscriptions") ~> addCredentials(validCredentials) ~> routes ~> check {
