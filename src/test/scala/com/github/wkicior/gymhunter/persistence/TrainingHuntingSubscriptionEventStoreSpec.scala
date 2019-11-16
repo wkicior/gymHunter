@@ -4,10 +4,11 @@ import java.time.OffsetDateTime
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionAggregate.{TrainingHuntingSubscriptionAdded, TrainingHuntingSubscriptionDeleted}
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId.OptionalTrainingHuntingSubscription
+import com.github.wkicior.gymhunter.domain.subscription.OptionalTrainingHuntingSubscription.OptionalTrainingHuntingSubscription
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionErrors.TrainingHuntingSubscriptionNotFound
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscriptionAddedEvent, TrainingHuntingSubscriptionDeletedEvent}
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence._
-import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionAggregate, TrainingHuntingSubscriptionId, TrainingHuntingSubscriptionNotFound}
+import com.github.wkicior.gymhunter.domain.subscription._
 import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingHuntingSubscriptionEventStore
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
@@ -34,7 +35,7 @@ class TrainingHuntingSubscriptionEventStoreSpec(_system: ActorSystem) extends Te
 
     "store TrainingToAdd on TrainingHungingSubscriptionAdded event" in {
       //given
-      val thsAddedEvent = TrainingHuntingSubscriptionAdded(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now())
+      val thsAddedEvent = TrainingHuntingSubscriptionAddedEvent(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now())
 
       //when
       thsEventStore.tell(StoreEvents(thsAddedEvent.id, List(thsAddedEvent)), probe.ref)
@@ -56,8 +57,8 @@ class TrainingHuntingSubscriptionEventStoreSpec(_system: ActorSystem) extends Te
 
   "delete TrainingHuntingSubscription on TrainingHuntingSubscriptionDeleted event" in {
     //given
-    val thsAddedEvent = TrainingHuntingSubscriptionAdded(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now())
-    val deleteEvent = TrainingHuntingSubscriptionDeleted(thsAddedEvent.id)
+    val thsAddedEvent = TrainingHuntingSubscriptionAddedEvent(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now())
+    val deleteEvent = TrainingHuntingSubscriptionDeletedEvent(thsAddedEvent.id)
 
     //when
     thsEventStore.tell(StoreEvents(thsAddedEvent.id, List(thsAddedEvent, deleteEvent)), probe.ref)
@@ -74,7 +75,7 @@ class TrainingHuntingSubscriptionEventStoreSpec(_system: ActorSystem) extends Te
   "return either.right TrainingHuntingSubscriptionAggregate by ID" in {
     //given
     val id = TrainingHuntingSubscriptionId()
-    val thsAddedEvent = TrainingHuntingSubscriptionAdded(id, 1L, 2L, OffsetDateTime.now())
+    val thsAddedEvent = TrainingHuntingSubscriptionAddedEvent(id, 1L, 2L, OffsetDateTime.now())
     thsEventStore.tell(StoreEvents(thsAddedEvent.id, List(thsAddedEvent)), probe.ref)
     val thsAggregate = probe.expectMsgType[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
 
@@ -101,7 +102,7 @@ class TrainingHuntingSubscriptionEventStoreSpec(_system: ActorSystem) extends Te
   "return either.right TrainingHuntingSubscription by ID" in {
     //given
     val id = TrainingHuntingSubscriptionId()
-    val thsAddedEvent = TrainingHuntingSubscriptionAdded(id, 1L, 2L, OffsetDateTime.now())
+    val thsAddedEvent = TrainingHuntingSubscriptionAddedEvent(id, 1L, 2L, OffsetDateTime.now())
     thsEventStore.tell(StoreEvents(thsAddedEvent.id, List(thsAddedEvent)), probe.ref)
     val thsAggregate = probe.expectMsgType[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
 

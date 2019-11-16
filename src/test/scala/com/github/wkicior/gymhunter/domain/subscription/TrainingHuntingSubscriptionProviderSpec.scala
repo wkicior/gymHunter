@@ -4,9 +4,9 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId.OptionalTrainingHuntingSubscription
+import com.github.wkicior.gymhunter.domain.subscription.OptionalTrainingHuntingSubscription.OptionalTrainingHuntingSubscription
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence.{GetAllTrainingHuntingSubscriptions, GetTrainingHuntingSubscription}
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionProvider.{GetAllTrainingHuntingSubscriptionsQuery, GetTrainingHuntingSubscriptionQuery, GetTrainingHuntingSubscriptionsByTrainingIdQuery, GetActiveTrainingHuntingSubscriptionsQuery}
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionProvider.{GetActiveTrainingHuntingSubscriptionsQuery, GetAllTrainingHuntingSubscriptionsQuery, GetTrainingHuntingSubscriptionQuery, GetTrainingHuntingSubscriptionsByTrainingIdQuery}
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
 import scala.language.postfixOps

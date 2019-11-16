@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+option java_package = "com.github.wkicior.gymhunter.infrastructure.persistence";
+option optimize_for = SPEED;
+
+message TrainingHuntingSubscriptionAdded {
+    required string id  = 1;
+    required string createdDateTime = 2;
+    required string trainingHuntingSubscriptionId = 3;
+    required uint64 externalSystemId = 4;
+    required uint64 clubId = 5;
+    required string huntingEndTime = 6;
+}

@@ -8,8 +8,8 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.wkicior.gymhunter.domain.notification.Notification
+import com.github.wkicior.gymhunter.domain.subscription.OptionalTrainingHuntingSubscription.OptionalTrainingHuntingSubscription
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.CreateTrainingHuntingSubscriptionCommand
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId.OptionalTrainingHuntingSubscription
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence.GetTrainingHuntingSubscriptionAggregate
 import com.github.wkicior.gymhunter.domain.subscription._
 import com.github.wkicior.gymhunter.domain.training.Training

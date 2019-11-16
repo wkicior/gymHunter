@@ -5,7 +5,6 @@ import java.time.OffsetDateTime
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import com.github.wkicior.gymhunter.domain.notification.{Notification, SlotsAvailableNotificationSentEvent}
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionAggregate.TrainingHuntingSubscriptionNotificationSent
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence.{GetTrainingHuntingSubscriptionAggregate, StoreEvents}
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
@@ -54,7 +53,9 @@ class TrainingSlotsAvailableNotificationSentEventHandlerSpec(_system: ActorSyste
       thsEventStoreProbe.expectMsg(GetTrainingHuntingSubscriptionAggregate(notification.trainingHuntingSubscriptionId))
       thsEventStoreProbe.reply(Right(sampleThs))
 
-      thsEventStoreProbe.expectMsg(StoreEvents(sampleThs.id, List(TrainingHuntingSubscriptionNotificationSent(sampleThs.id))))
+      thsEventStoreProbe.expectMsgPF() {
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionNotificationSentEvent(sampleThs.id, _, _))) => ok
+      }
       thsEventStoreProbe.reply(Right(sampleThs.id))
 
       sampleThs.notificationOnSlotsAvailableSentTime  should be <= OffsetDateTime.now()

@@ -3,18 +3,17 @@ package com.github.wkicior.gymhunter.infrastructure.persistence
 import akka.actor.{ActorLogging, Props, _}
 import akka.pattern.pipe
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionAggregate.{TrainingHuntingSubscriptionAdded, TrainingHuntingSubscriptionDeleted, TrainingHuntingSubscriptionEvent}
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId.OptionalTrainingHuntingSubscription
+import com.github.wkicior.gymhunter.domain.subscription.OptionalTrainingHuntingSubscription.OptionalTrainingHuntingSubscription
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionErrors.TrainingHuntingSubscriptionNotFound
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscriptionAddedEvent, TrainingHuntingSubscriptionDeletedEvent, TrainingHuntingSubscriptionEvent}
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence._
-import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscriptionAggregate, TrainingHuntingSubscriptionId, TrainingHuntingSubscriptionNotFound}
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscriptionAggregate, TrainingHuntingSubscriptionId}
 
 import scala.concurrent.{Future, Promise}
 import scala.language.postfixOps
 
-
 object TrainingHuntingSubscriptionEventStore {
   def props: Props = Props[TrainingHuntingSubscriptionEventStore]
-
 }
 
 final case class State(trainingHuntingSubscriptions: Map[TrainingHuntingSubscriptionId, TrainingHuntingSubscriptionAggregate] = Map.empty) {
@@ -23,8 +22,8 @@ final case class State(trainingHuntingSubscriptions: Map[TrainingHuntingSubscrip
     trainingHuntingSubscriptions.get(id).toRight(TrainingHuntingSubscriptionNotFound(id))
   def +(event: TrainingHuntingSubscriptionEvent): State = {
     event match {
-      case createEvent: TrainingHuntingSubscriptionAdded => State(trainingHuntingSubscriptions.updated(event.id, new TrainingHuntingSubscriptionAggregate(createEvent)))
-      case deleteEvent: TrainingHuntingSubscriptionDeleted => State(trainingHuntingSubscriptions.removed(deleteEvent.id))
+      case createEvent: TrainingHuntingSubscriptionAddedEvent => State(trainingHuntingSubscriptions.updated(event.id, new TrainingHuntingSubscriptionAggregate(createEvent)))
+      case deleteEvent: TrainingHuntingSubscriptionDeletedEvent => State(trainingHuntingSubscriptions.removed(deleteEvent.id))
       case _ => State(trainingHuntingSubscriptions.updated(event.id, trainingHuntingSubscriptions(event.id)(event)))
     }
   }
@@ -42,10 +41,13 @@ class TrainingHuntingSubscriptionEventStore extends PersistentActor with ActorLo
   }
 
   val snapShotInterval = 1000
+
   val receiveCommand: Receive = {
     case StoreEvents(id, events) =>
-      Future.sequence(events.map(e => handleEvent(e)))
-        .map(_ => state(id)) pipeTo sender()
+      Future.sequence(events
+        .map(e => handleEvent(e))
+      )
+      .map(_ => state(id)) pipeTo sender()
     case GetAllTrainingHuntingSubscriptions() =>
       sender() ! state().map(a => a())
     case GetTrainingHuntingSubscriptionAggregate(id) =>

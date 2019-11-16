@@ -5,9 +5,9 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionAggregate.{TrainingHuntingSubscriptionAdded, TrainingHuntingSubscriptionDeleted}
+import com.github.wkicior.gymhunter.domain.subscription.OptionalTrainingHuntingSubscription.OptionalTrainingHuntingSubscription
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.{CreateTrainingHuntingSubscriptionCommand, DeleteTrainingHuntingSubscriptionCommand}
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId.OptionalTrainingHuntingSubscription
+import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionErrors.TrainingHuntingSubscriptionNotFound
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence.{GetTrainingHuntingSubscriptionAggregate, StoreEvents}
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
@@ -42,7 +42,7 @@ class TrainingHuntingSubscriptionCommandHandlerSpec(_system: ActorSystem) extend
 
       //then
       thsEventStoreProbe.expectMsgPF() {
-        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAdded(_, 1L, 2L, createThsCommand.huntingEndTime))) => ok
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAddedEvent(_, 1L, 2L, createThsCommand.huntingEndTime, _, _))) => ok
       }
       thsEventStoreProbe.reply(Right(sampleThs))
 
@@ -67,7 +67,7 @@ class TrainingHuntingSubscriptionCommandHandlerSpec(_system: ActorSystem) extend
 
     "delete existing TrainingHuntingSubscription and return OptionalTrainingHuntingSubscription with deleted TrainingHuntingSubscription" in {
       //given
-      val thsAddedEvent = TrainingHuntingSubscriptionAdded(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now())
+      val thsAddedEvent = TrainingHuntingSubscriptionAddedEvent(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now())
       val sampleThs = new TrainingHuntingSubscriptionAggregate(thsAddedEvent) //creating from event in order to have clean events list
 
       //when
@@ -77,7 +77,9 @@ class TrainingHuntingSubscriptionCommandHandlerSpec(_system: ActorSystem) extend
       thsEventStoreProbe.expectMsg(GetTrainingHuntingSubscriptionAggregate(sampleThs.id))
       thsEventStoreProbe.reply(Right(sampleThs))
 
-      thsEventStoreProbe.expectMsg(StoreEvents(sampleThs.id, List(TrainingHuntingSubscriptionDeleted(sampleThs.id))))
+      thsEventStoreProbe.expectMsgPF() {
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionDeletedEvent(sampleThs.id, _, _))) => ok
+      }
       thsEventStoreProbe.reply(Left(TrainingHuntingSubscriptionNotFound(sampleThs.id)))
 
       val response = probe.expectMsgType[OptionalTrainingHuntingSubscription[TrainingHuntingSubscription]]

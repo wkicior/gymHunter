@@ -4,9 +4,10 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props, Status}
 import akka.testkit.{TestKit, TestProbe}
+
 import scala.concurrent.duration._
 import com.github.wkicior.gymhunter.domain.notification.Notification
-import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionAggregate.TrainingHuntingSubscriptionAdded
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscriptionAddedEvent, TrainingHuntingSubscriptionNotificationSentEvent}
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence.{GetAllTrainingHuntingSubscriptions, GetTrainingHuntingSubscriptionAggregate, StoreEvents}
 import com.github.wkicior.gymhunter.domain.subscription._
 import com.github.wkicior.gymhunter.domain.training.{GetTraining, Training}
@@ -60,7 +61,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
     """.stripMargin in {
       //given
       val training = Training(42L, 1, Some(OffsetDateTime.now().minusDays(1)), OffsetDateTime.now.plusDays(1))
-      val thsAddedEvent = TrainingHuntingSubscriptionAdded(TrainingHuntingSubscriptionId(), 42L, 9L, OffsetDateTime.now.plusDays(1))
+      val thsAddedEvent = TrainingHuntingSubscriptionAddedEvent(TrainingHuntingSubscriptionId(), 42L, 9L, OffsetDateTime.now.plusDays(1))
       val ths = new TrainingHuntingSubscriptionAggregate(thsAddedEvent) //creating from event in order to have clean events list
       val probe = TestProbe()
 
@@ -83,7 +84,9 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       thsEventStoreProbe.expectMsg(GetTrainingHuntingSubscriptionAggregate(ths.id)) //by TrainingSlotsAvailableNotificationSentEventHandler
       thsEventStoreProbe.reply(Right(ths))
 
-      thsEventStoreProbe.expectMsg(StoreEvents(ths.id, List(TrainingHuntingSubscriptionAggregate.TrainingHuntingSubscriptionNotificationSent(ths.id))))
+      thsEventStoreProbe.expectMsgPF() {
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionNotificationSentEvent(ths.id,  _, _))) => ok
+      }
       ths.notificationOnSlotsAvailableSentTime should be <= OffsetDateTime.now
     }
 

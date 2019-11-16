@@ -1,14 +1,11 @@
 package com.github.wkicior.gymhunter.domain.training
 
-import java.time.OffsetDateTime
-
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.ask
 import akka.routing.RoundRobinPool
 import akka.util.Timeout
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionProvider}
 import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.ProcessVacantTraining
-import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerTrainingFetcherException
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
