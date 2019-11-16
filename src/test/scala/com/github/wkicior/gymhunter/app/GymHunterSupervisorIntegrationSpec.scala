@@ -88,7 +88,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
 
       thsEventStore.tell(GetTrainingHuntingSubscriptionAggregate(tth.id), probe.ref)
       val updateTthAggregate = probe.expectMsgType[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
-      updateTthAggregate.toOption.get.notificationOnSlotsAvailableSentTime should be <= OffsetDateTime.now
+      updateTthAggregate.toOption.get.notificationOnSlotsAvailableSentTime.get should be <= OffsetDateTime.now
     }
   }
 

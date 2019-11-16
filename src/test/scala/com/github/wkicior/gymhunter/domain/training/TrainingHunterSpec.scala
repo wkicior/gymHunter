@@ -76,7 +76,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
 
       //then
       thsProviderProbe.expectMsgType[TrainingHuntingSubscriptionProvider.GetActiveTrainingHuntingSubscriptionsQuery]
-      thsProviderProbe.reply(Set(TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 42, 8, OffsetDateTime.now, None)))
+      thsProviderProbe.reply(Set(TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 42, 8, OffsetDateTime.now)))
 
       trainingFetcherProbe.expectMsg(GetTraining(42L))
       trainingFetcherProbe.reply(sampleNonVacantTraining)
@@ -97,7 +97,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
 
       //then
       thsProviderProbe.expectMsgType[TrainingHuntingSubscriptionProvider.GetActiveTrainingHuntingSubscriptionsQuery]
-      thsProviderProbe.reply(Set(TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 42, 8, OffsetDateTime.now, None)))
+      thsProviderProbe.reply(Set(TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 42, 8, OffsetDateTime.now)))
 
       trainingFetcherProbe.expectMsg(GetTraining(42L))
       trainingFetcherProbe.reply(sampleVacantTraining)

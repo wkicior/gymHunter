@@ -33,7 +33,7 @@ class TrainingHuntingSubscriptionProviderSpec(_system: ActorSystem) extends Test
   "A TrainingHuntingSubscriptionProvider Actor" should {
     "return all training hunting subscriptions from the event store" in {
       //given
-      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now(), None)
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now(), None, None)
       //when
       thsProvider.tell(GetAllTrainingHuntingSubscriptionsQuery(), probe.ref)
 

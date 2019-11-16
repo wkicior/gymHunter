@@ -10,4 +10,5 @@ message TrainingHuntingSubscriptionAdded {
     required uint64 externalSystemId = 4;
     required uint64 clubId = 5;
     required string huntingEndTime = 6;
+    optional string autoBookingDeadline = 7;
 }

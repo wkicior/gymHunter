@@ -18,7 +18,6 @@ class TrainingSlotsAvailableNotificationSentEventHandlerSpec(_system: ActorSyste
     shutdown(system)
   }
 
-  private val probe = TestProbe()
   val thsEventStoreProbe = TestProbe()
   val slotsAvailableNotificationSenderProbe = TestProbe()
 
@@ -58,7 +57,7 @@ class TrainingSlotsAvailableNotificationSentEventHandlerSpec(_system: ActorSyste
       }
       thsEventStoreProbe.reply(Right(sampleThs.id))
 
-      sampleThs.notificationOnSlotsAvailableSentTime  should be <= OffsetDateTime.now()
+      sampleThs.notificationOnSlotsAvailableSentTime.get should be <= OffsetDateTime.now()
     }
   }
 }

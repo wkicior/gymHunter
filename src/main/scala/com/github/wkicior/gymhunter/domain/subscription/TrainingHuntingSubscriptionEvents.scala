@@ -14,6 +14,7 @@ final case class TrainingHuntingSubscriptionAddedEvent(id: TrainingHuntingSubscr
                                                        externalSystemId: Long,
                                                        clubId: Long,
                                                        huntingEndTime: OffsetDateTime,
+                                                       autoBookingDeadline: Option[OffsetDateTime] = None,
                                                        override val eventId: UUID = UUID.randomUUID,
                                                        override val createdDateTime: OffsetDateTime = OffsetDateTime.now
                                                       ) extends TrainingHuntingSubscriptionEvent
