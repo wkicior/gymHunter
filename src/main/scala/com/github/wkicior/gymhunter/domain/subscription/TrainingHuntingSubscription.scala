@@ -16,10 +16,12 @@ case class TrainingHuntingSubscription(id: TrainingHuntingSubscriptionId,
                                        clubId: Long,
                                        huntingDeadline: OffsetDateTime,
                                        notificationOnSlotsAvailableSentDateTime: Option[OffsetDateTime] = None,
-                                       autoBookingDeadline: Option[OffsetDateTime] = None) {
+                                       autoBookingDeadline: Option[OffsetDateTime] = None,
+                                       autoBookingDateTime: Option[OffsetDateTime] = None) {
   def hasNotificationBeenSent: Boolean = this.notificationOnSlotsAvailableSentDateTime.isDefined
   def isContemporary: Boolean = this.huntingDeadline.isAfter(OffsetDateTime.now)
-  def isActive: Boolean = !hasNotificationBeenSent && isContemporary
+  def isActive: Boolean = !hasNotificationBeenSent && isContemporary && autoBookingDateTime.isEmpty
+  def canBeAutoBooked: Boolean = isContemporary && autoBookingDeadline.exists(d => d.isAfter(OffsetDateTime.now)) && autoBookingDateTime.isEmpty
 }
 
 case class TrainingHuntingSubscriptionAggregate(id: TrainingHuntingSubscriptionId, externalSystemId: Long, clubId: Long) {
@@ -27,6 +29,7 @@ case class TrainingHuntingSubscriptionAggregate(id: TrainingHuntingSubscriptionI
   var huntingDeadline: OffsetDateTime = OffsetDateTime.now()
   var notificationOnSlotsAvailableSentTime: Option[OffsetDateTime] = None
   var autoBookingDeadline: Option[OffsetDateTime] = None
+  var autoBookingDateTime: Option[OffsetDateTime] = None
 
   private var pendingEvents = ListBuffer[TrainingHuntingSubscriptionEvent]()
 
@@ -36,6 +39,7 @@ case class TrainingHuntingSubscriptionAggregate(id: TrainingHuntingSubscriptionI
     this.huntingDeadline = huntingDeadline
     this.autoBookingDeadline = autoBookingDeadline
     this.notificationOnSlotsAvailableSentTime = None
+    this.autoBookingDateTime = None
     pendingEvents += TrainingHuntingSubscriptionAddedEvent(id, externalSystemId, clubId, huntingDeadline, autoBookingDeadline)
   }
 
@@ -60,7 +64,7 @@ case class TrainingHuntingSubscriptionAggregate(id: TrainingHuntingSubscriptionI
   }
 
   def apply(): TrainingHuntingSubscription = {
-    TrainingHuntingSubscription(id, externalSystemId, clubId, huntingDeadline, notificationOnSlotsAvailableSentTime, autoBookingDeadline)
+    TrainingHuntingSubscription(id, externalSystemId, clubId, huntingDeadline, notificationOnSlotsAvailableSentTime, autoBookingDeadline, autoBookingDateTime)
   }
 
   def pendingEventsList(): List[TrainingHuntingSubscriptionEvent] = pendingEvents.toList

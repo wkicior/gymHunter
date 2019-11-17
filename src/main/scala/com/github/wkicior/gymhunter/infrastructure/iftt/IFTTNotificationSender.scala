@@ -10,8 +10,6 @@ import com.github.wkicior.gymhunter.domain.training.Training
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-case class TrainingResponse(training: Training)
-
 object IFTTNotificationSender {
   def props: Props = Props[IFTTNotificationSender]
 }

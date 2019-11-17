@@ -33,7 +33,7 @@ class TrainingHuntingSubscriptionEventStoreSpec(_system: ActorSystem) extends Te
       response.size shouldEqual 0
     }
 
-    "store TrainingToAdd on TrainingHungingSubscriptionAdded event" in {
+    "store TrainingToAdd on TrainingHuntingSubscriptionAdded event" in {
       //given
       val thsAddedEvent = TrainingHuntingSubscriptionAddedEvent(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now())
 

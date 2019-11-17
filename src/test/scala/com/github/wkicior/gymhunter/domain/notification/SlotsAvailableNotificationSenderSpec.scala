@@ -47,7 +47,6 @@ class SlotsAvailableNotificationSenderSpec(_system: ActorSystem) extends TestKit
       ifttNotificationSenderProbe.expectMsg(new IFTTNotification(notification))
       ifttNotificationSenderProbe.reply(Status.Success)
 
-
       val event = probe.expectMsg(SlotsAvailableNotificationSentEvent(notification))
       event.notification shouldEqual notification
     }

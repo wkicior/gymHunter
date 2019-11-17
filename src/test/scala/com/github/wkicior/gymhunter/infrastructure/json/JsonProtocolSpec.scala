@@ -43,22 +43,23 @@ class JsonProtocolSpec extends WordSpec with Matchers {
         "clubId" -> JsNumber(trainingToHunt.clubId),
         "huntingDeadline" -> OffsetDateTimeFormat.write(trainingToHunt.huntingDeadline),
         "notificationOnSlotsAvailableSentDateTime" -> JsNull,
-        "autoBookingDeadline" -> JsNull
+        "autoBookingDeadline" -> JsNull,
+        "autoBookingDateTime" -> JsNull,
       )
       val jf = implicitly[JsonFormat[TrainingHuntingSubscription]]
       jf.write(trainingToHunt) shouldBe trainingToHuntJson
     }
 
-    "write TrainingHuntingSubscription value to JSON with notificationDateTime and autoBookingDeadline" in {
-      val trainingToHunt = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now, Some(OffsetDateTime.now), Some(OffsetDateTime.now))
+    "write TrainingHuntingSubscription value to JSON with notificationDateTime and autoBookingDeadline and autoBookingDateTime" in {
+      val trainingToHunt = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 2L, OffsetDateTime.now, Some(OffsetDateTime.now), Some(OffsetDateTime.now), Some(OffsetDateTime.now))
       val trainingToHuntJson = JsObject(
         "id" -> JsString(trainingToHunt.id.toString),
         "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
         "clubId" -> JsNumber(trainingToHunt.clubId),
         "huntingDeadline" -> OffsetDateTimeFormat.write(trainingToHunt.huntingDeadline),
         "notificationOnSlotsAvailableSentDateTime" -> OffsetDateTimeFormat.write(trainingToHunt.notificationOnSlotsAvailableSentDateTime.get),
-        "autoBookingDeadline" -> OffsetDateTimeFormat.write(trainingToHunt.autoBookingDeadline.get)
-
+        "autoBookingDeadline" -> OffsetDateTimeFormat.write(trainingToHunt.autoBookingDeadline.get),
+        "autoBookingDateTime" -> OffsetDateTimeFormat.write(trainingToHunt.autoBookingDateTime.get)
       )
       val jf = implicitly[JsonFormat[TrainingHuntingSubscription]]
       jf.write(trainingToHunt) shouldBe trainingToHuntJson

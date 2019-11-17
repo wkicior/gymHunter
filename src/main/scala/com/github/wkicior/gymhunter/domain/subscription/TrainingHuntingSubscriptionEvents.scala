@@ -28,3 +28,8 @@ final case class TrainingHuntingSubscriptionNotificationSentEvent(id: TrainingHu
                                                                   override val eventId: UUID = UUID.randomUUID,
                                                                   override val createdDateTime: OffsetDateTime = OffsetDateTime.now
                                                                  ) extends TrainingHuntingSubscriptionEvent
+
+final case class TrainingHuntingSubscriptionAutoBookingEvent(id: TrainingHuntingSubscriptionId,
+                                                                  override val eventId: UUID = UUID.randomUUID,
+                                                                  override val createdDateTime: OffsetDateTime = OffsetDateTime.now
+                                                                 ) extends TrainingHuntingSubscriptionEvent

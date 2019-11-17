@@ -13,15 +13,17 @@ import scala.language.postfixOps
 
 
 object TrainingHunter {
-  private [gymhunter] def props(thsEventStore: ActorRef, trainingFetcher: ActorRef, ifttNotifiationSender: ActorRef): Props = Props(
-    new TrainingHunter(TrainingHuntingSubscriptionProvider.props(thsEventStore), trainingFetcher, VacantTrainingManager.props(thsEventStore, ifttNotifiationSender)))
+  private [gymhunter] def props(thsEventStore: ActorRef, gymsteerProxy: ActorRef, ifttNotifiationSender: ActorRef): Props = Props(
+    new TrainingHunter(TrainingHuntingSubscriptionProvider.props(thsEventStore),
+      gymsteerProxy,
+      VacantTrainingManager.props(thsEventStore, ifttNotifiationSender, gymsteerProxy)))
   private [training] def props(trainingHunterProps: Props, trainingFetcher: ActorRef, vacantTrainingManagerProps: Props): Props = Props(
     new TrainingHunter(trainingHunterProps, trainingFetcher, vacantTrainingManagerProps)
   )
   final case class Hunt()
 }
 
-class TrainingHunter(thsProviderProps: Props, trainingFetcher: ActorRef, vacantTrainingManagerProps: Props) extends Actor with ActorLogging {
+class TrainingHunter(thsProviderProps: Props, gymsteerProxy: ActorRef, vacantTrainingManagerProps: Props) extends Actor with ActorLogging {
   import TrainingHunter._
   import TrainingHuntingSubscriptionProvider._
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
@@ -53,7 +55,7 @@ class TrainingHunter(thsProviderProps: Props, trainingFetcher: ActorRef, vacantT
 
   private def getTraining(id: Long): Future[Option[Training]] = {
     implicit val timeout: Timeout = Timeout(10 seconds)
-    ask(trainingFetcher, GetTraining(id)).mapTo[Training].map(t => Some(t)).recover {
+    ask(gymsteerProxy, GetTraining(id)).mapTo[Training].map(t => Some(t)).recover {
       case ex: Exception =>
         log.warning(s"error on getting training $id ($ex), ignoring the training")
         Option.empty[Training]

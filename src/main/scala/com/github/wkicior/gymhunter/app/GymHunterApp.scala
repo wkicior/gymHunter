@@ -6,7 +6,7 @@ import akka.http.scaladsl.Http
 import akka.routing.RoundRobinPool
 import akka.stream.ActorMaterializer
 import com.github.wkicior.gymhunter.app.GymHunterSupervisor.RunGymHunting
-import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerTrainingFetcher
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerProxy
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender
 import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingHuntingSubscriptionEventStore
 import com.github.wkicior.gymhunter.web.RestApi
@@ -26,9 +26,9 @@ object GymHunterApp extends App {
   val settings: SettingsImpl = Settings(system)
 
   val trainingHuntingSubscriptionEventStore = system.actorOf(TrainingHuntingSubscriptionEventStore.props, "TrainingHuntingSubscriptionEventStore")
-  val gymsteerTrainingFetcher = system.actorOf(RoundRobinPool(8).props(GymsteerTrainingFetcher.props(settings.gymsteerHost)), "GymsteerTrainingFetcher")
+  val gymsteerProxy = system.actorOf(RoundRobinPool(8).props(GymsteerProxy.props(settings.gymsteerHost)), "GymsteerProxy")
   val ifttNotificationSender = system.actorOf(IFTTNotificationSender.props, "IFTTNotificationSender")
-  val supervisor: ActorRef = system.actorOf(GymHunterSupervisor.props(trainingHuntingSubscriptionEventStore, gymsteerTrainingFetcher, ifttNotificationSender), "GymHunterSupervisor")
+  val supervisor: ActorRef = system.actorOf(GymHunterSupervisor.props(trainingHuntingSubscriptionEventStore, gymsteerProxy, ifttNotificationSender), "GymHunterSupervisor")
   scheduler.schedule("GymHunterSupervisorScheduler", supervisor, RunGymHunting())
 
   val api = new RestApi(system, trainingHuntingSubscriptionEventStore).routes

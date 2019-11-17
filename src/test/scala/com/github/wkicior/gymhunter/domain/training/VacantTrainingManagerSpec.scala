@@ -1,6 +1,5 @@
 package com.github.wkicior.gymhunter.domain.training
 
-
 import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
@@ -10,6 +9,7 @@ import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificati
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId, TrainingHuntingSubscriptionProvider}
 import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.ProcessVacantTraining
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import scala.concurrent.duration._
 
 import scala.language.postfixOps
 
@@ -23,6 +23,7 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
   }
   val thsProviderProbe = TestProbe()
   val slotsAvailableNotificationSenderProbe = TestProbe()
+  val trainingBookerProbe = TestProbe()
 
   val thsProviderProps = Props(new Actor {
     def receive: PartialFunction[Any, Unit] = {
@@ -34,17 +35,23 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
       case x => slotsAvailableNotificationSenderProbe.ref forward x
     }
   })
+  val trainingBookerProps = Props(new Actor {
+    def receive: PartialFunction[Any, Unit] = {
+      case x => trainingBookerProbe.ref forward x
+    }
+  })
 
-  private val trainingHunter = system.actorOf(VacantTrainingManager.props(thsProviderProps, slotsAvailableNotificationSenderProps))
+  private val trainingHunter = system.actorOf(VacantTrainingManager.props(thsProviderProps, slotsAvailableNotificationSenderProps, trainingBookerProps))
 
   "A VacantTrainingManager Actor" should {
-    """fetch all TrainingHungingSubscription entities related to given Training
+    """fetch all TrainingHuntingSubscription entities related to given Training
       |and send the notification command
+      |and don't perform auto booking for them
     """.stripMargin in {
       //given
       val probe = TestProbe()
       val training = Training(1, 1, Some(OffsetDateTime.now()), OffsetDateTime.now().plusDays(2))
-      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 1L, OffsetDateTime.now().plusDays(1), None, None)
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 1L, OffsetDateTime.now().plusDays(1))
 
       //when
       trainingHunter.tell(ProcessVacantTraining(training), probe.ref)
@@ -54,6 +61,47 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
       thsProviderProbe.reply(Set(ths))
 
       slotsAvailableNotificationSenderProbe.expectMsg(SendNotification(Notification(training.start_date, ths.clubId, ths.id)))
+      trainingBookerProbe.expectNoMessage(1 second)
+    }
+
+    """fetch all TrainingHuntingSubscription entities related to given Training
+      |and send the notification command for those training hunting subscriptions with passed autoBookingDeadline
+      |and don't perform auto booking for them
+    """.stripMargin in {
+      //given
+      val probe = TestProbe()
+      val training = Training(1, 1, Some(OffsetDateTime.now()), OffsetDateTime.now().plusDays(2))
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 1L, OffsetDateTime.now().plusDays(1), None, Some(OffsetDateTime.now.minusDays(1)))
+
+      //when
+      trainingHunter.tell(ProcessVacantTraining(training), probe.ref)
+
+      //then
+      thsProviderProbe.expectMsg(TrainingHuntingSubscriptionProvider.GetTrainingHuntingSubscriptionsByTrainingIdQuery(training.id))
+      thsProviderProbe.reply(Set(ths))
+
+      slotsAvailableNotificationSenderProbe.expectMsg(SendNotification(Notification(training.start_date, ths.clubId, ths.id)))
+      trainingBookerProbe.expectNoMessage(1 second)
+    }
+
+    """fetch all TrainingHuntingSubscription entities related to given Training
+      |and start auto booking for training hunting subscriptions with future autoBookingDeadline
+      |and do not send notification commands for those subscriptions
+    """.stripMargin in {
+      //given
+      val probe = TestProbe()
+      val training = Training(1, 1, Some(OffsetDateTime.now()), OffsetDateTime.now().plusDays(2))
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 1L, OffsetDateTime.now().plusDays(1), None, Some(OffsetDateTime.now.plusMinutes(2)))
+
+      //when
+      trainingHunter.tell(ProcessVacantTraining(training), probe.ref)
+
+      //then
+      thsProviderProbe.expectMsg(TrainingHuntingSubscriptionProvider.GetTrainingHuntingSubscriptionsByTrainingIdQuery(training.id))
+      thsProviderProbe.reply(Set(ths))
+
+      trainingBookerProbe.expectMsg(TrainingBooker.BookTraining(ths))
+      slotsAvailableNotificationSenderProbe.expectNoMessage(1 second)
     }
   }
 }

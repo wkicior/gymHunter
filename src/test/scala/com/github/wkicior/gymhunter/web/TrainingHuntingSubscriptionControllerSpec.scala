@@ -46,7 +46,7 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
       Post("/api/training-hunting-subscriptions", CreateTrainingHuntingSubscriptionCommand(123, 8, endOfHuntDatetime)) ~> addCredentials(validCredentials) ~> routes ~> check {
         status shouldEqual StatusCodes.Created
         val ths = responseAs[TrainingHuntingSubscription]
-        inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingDeadline, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
+        inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingDeadline, notificationOnSlotsAvailableSentTime, autoBookingDeadline, _) =>
             id.toString should not be empty
             externalSystemId shouldEqual 123
             clubId shouldEqual 8
@@ -65,7 +65,7 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
       Post("/api/training-hunting-subscriptions", CreateTrainingHuntingSubscriptionCommand(123, 8, date, Some(date))) ~> addCredentials(validCredentials) ~> routes ~> check {
         status shouldEqual StatusCodes.Created
         val ths = responseAs[TrainingHuntingSubscription]
-        inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingDeadline, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
+        inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingDeadline, notificationOnSlotsAvailableSentTime, autoBookingDeadline, _) =>
           id.toString should not be empty
           externalSystemId shouldEqual 123
           clubId shouldEqual 8
@@ -94,7 +94,7 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
         Delete(s"/api/training-hunting-subscriptions/${ths.id}") ~> addCredentials(validCredentials) ~> routes ~> check {
           status shouldEqual StatusCodes.OK
           val deletedThs = responseAs[TrainingHuntingSubscription]
-          inside(deletedThs) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingDeadline, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
+          inside(deletedThs) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingDeadline, notificationOnSlotsAvailableSentTime, autoBookingDeadline, _) =>
             id.toString should not be empty
             externalSystemId shouldEqual 124
             clubId shouldEqual 8

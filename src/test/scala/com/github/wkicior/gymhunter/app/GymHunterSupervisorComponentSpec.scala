@@ -10,7 +10,7 @@ import com.github.wkicior.gymhunter.domain.notification.Notification
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscriptionAddedEvent, TrainingHuntingSubscriptionNotificationSentEvent}
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence.{GetAllTrainingHuntingSubscriptions, GetTrainingHuntingSubscriptionAggregate, StoreEvents}
 import com.github.wkicior.gymhunter.domain.subscription._
-import com.github.wkicior.gymhunter.domain.training.{GetTraining, Training}
+import com.github.wkicior.gymhunter.domain.training.{BookTraining, GetTraining, Training}
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -26,7 +26,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
   }
 
   val thsEventStoreProbe = TestProbe()
-  val trainingFetcherProbe = TestProbe()
+  val gymsteerProxyProbe = TestProbe()
   val ifttNotificationSenderProbe = TestProbe()
 
   val thsEventStoreProps = Props(new Actor {
@@ -35,9 +35,9 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
     }
   })
 
-  val trainingFetcherProps = Props(new Actor {
+  val gymsteerProxyProps = Props(new Actor {
     def receive: PartialFunction[Any, Unit] = {
-      case x => trainingFetcherProbe.ref forward x
+      case x => gymsteerProxyProbe.ref forward x
     }
   })
 
@@ -48,10 +48,10 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
   })
 
   private val thsEventStore = system.actorOf(thsEventStoreProps, "TrainingHuntingSubscriptionEventStore")
-  private val trainingFetcher = system.actorOf(trainingFetcherProps, "GymsteerTrainingFetcher")
+  private val gymsteerProxy = system.actorOf(gymsteerProxyProps, "GymsteerProxy")
   private val ifttNotificationSender = system.actorOf(ifttNotificationSenderProps, "IFTTNotificationSender")
 
-  private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(thsEventStore, trainingFetcher, ifttNotificationSender), "GymHunterSupervisorIntegrationTest")
+  private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(thsEventStore, gymsteerProxy, ifttNotificationSender), "GymHunterSupervisorIntegrationTest")
 
   "A GymHunterSupervisor Actor" should {
     """start new hunting
@@ -61,7 +61,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
     """.stripMargin in {
       //given
       val training = Training(42L, 1, Some(OffsetDateTime.now().minusDays(1)), OffsetDateTime.now.plusDays(1))
-      val thsAddedEvent = TrainingHuntingSubscriptionAddedEvent(TrainingHuntingSubscriptionId(), 42L, 9L, OffsetDateTime.now.plusDays(1))
+      val thsAddedEvent = TrainingHuntingSubscriptionAddedEvent(TrainingHuntingSubscriptionId(), 42L, 9L, OffsetDateTime.now.plusDays(1), Some(OffsetDateTime.now.minusDays(1)))
       val ths = new TrainingHuntingSubscriptionAggregate(thsAddedEvent) //creating from event in order to have clean events list
       val probe = TestProbe()
 
@@ -72,8 +72,8 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions] // by TrainingHunter
       thsEventStoreProbe.reply(Set(ths()))
 
-      trainingFetcherProbe.expectMsg(GetTraining(42)) // by TrainingHunter
-      trainingFetcherProbe.reply(training)
+      gymsteerProxyProbe.expectMsg(GetTraining(42)) // by TrainingHunter
+      gymsteerProxyProbe.reply(training)
 
       thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions] //by VacantTrainingManager
       thsEventStoreProbe.reply(Set(ths()))
@@ -91,6 +91,44 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
     }
 
     """start new hunting
+      |by fetching all training hunting subscriptions with autoBookingDeadline
+      |and load training data for them
+      |and perform auto booking if slots are available on the training
+    """.stripMargin in {
+      //given
+      val training = Training(42L, 1, Some(OffsetDateTime.now().minusDays(1)), OffsetDateTime.now.plusDays(1))
+      val thsAddedEvent = TrainingHuntingSubscriptionAddedEvent(TrainingHuntingSubscriptionId(), 42L, 9L, OffsetDateTime.now.plusDays(1), Some(OffsetDateTime.now.plusHours(1)))
+      val ths = new TrainingHuntingSubscriptionAggregate(thsAddedEvent) //creating from event in order to have clean events list
+      val probe = TestProbe()
+
+      //when
+      gymHunterSupervisor.tell(GymHunterSupervisor.RunGymHunting(), probe.ref)
+
+      //then
+      thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions] // by TrainingHunter
+      thsEventStoreProbe.reply(Set(ths()))
+
+      gymsteerProxyProbe.expectMsg(GetTraining(42))
+      gymsteerProxyProbe.reply(training)
+
+      thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions] //by VacantTrainingManager
+      thsEventStoreProbe.reply(Set(ths()))
+
+      gymsteerProxyProbe.expectMsg(BookTraining(42))
+      gymsteerProxyProbe.reply(training)
+
+      thsEventStoreProbe.expectMsg(GetTrainingHuntingSubscriptionAggregate(ths.id)) //by AutoBookingEventHandler
+      thsEventStoreProbe.reply(Right(ths))
+
+      thsEventStoreProbe.expectMsgPF() {
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAutoBookingEvent(ths.id,  _, _))) => ok
+      }
+      ths.autoBookingDateTime.get should be <= OffsetDateTime.now
+      ths.notificationOnSlotsAvailableSentTime shouldBe None
+
+    }
+
+    """start new hunting
       |by fetching all trainings hunting subscriptions
       |and ignore training hunting subscriptions which has been notified already
     """.stripMargin in {
@@ -105,7 +143,27 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions]
       thsEventStoreProbe.reply(Set(ths))
 
-      trainingFetcherProbe.expectNoMessage(1 second)
+      gymsteerProxyProbe.expectNoMessage(1 second)
+
+      ifttNotificationSenderProbe.expectNoMessage(1 second)
+    }
+
+    """start new hunting
+      |by fetching all trainings hunting subscriptions
+      |and ignore training hunting subscriptions which has been auto booked already
+    """.stripMargin in {
+      //given
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 44L, 8L, OffsetDateTime.now.plusDays(1), None, Some(OffsetDateTime.now.plusDays(1)), Some(OffsetDateTime.now.minusMinutes(1)))
+      val probe = TestProbe()
+
+      //when
+      gymHunterSupervisor.tell(GymHunterSupervisor.RunGymHunting(), probe.ref)
+
+      //then
+      thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions]
+      thsEventStoreProbe.reply(Set(ths))
+
+      gymsteerProxyProbe.expectNoMessage(1 second)
 
       ifttNotificationSenderProbe.expectNoMessage(1 second)
     }
@@ -127,8 +185,8 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       thsEventStoreProbe.reply(Set(ths))
 
 
-      trainingFetcherProbe.expectMsg(GetTraining(44L))
-      trainingFetcherProbe.reply(training)
+      gymsteerProxyProbe.expectMsg(GetTraining(44L))
+      gymsteerProxyProbe.reply(training)
 
       ifttNotificationSenderProbe.expectNoMessage(1 second)
     }
@@ -148,7 +206,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions]
       thsEventStoreProbe.reply(Set(ths))
 
-      trainingFetcherProbe.expectNoMessage(1 second)
+      gymsteerProxyProbe.expectNoMessage(1 second)
       ifttNotificationSenderProbe.expectNoMessage(1 second)
     }
   }

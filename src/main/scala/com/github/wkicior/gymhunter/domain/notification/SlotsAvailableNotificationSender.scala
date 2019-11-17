@@ -26,8 +26,7 @@ class SlotsAvailableNotificationSender(ifttNotificationSender: ActorRef) extends
       log.info(s"will send IFTT notification for ${notification.trainingHuntingSubscriptionId}")
       implicit val timeout: Timeout = Timeout(5 seconds)
       ask(ifttNotificationSender, new IFTTNotification(notification)).onComplete {
-        case Success(_) => {
-          context.system.eventStream.publish(SlotsAvailableNotificationSentEvent(notification))}
+        case Success(_) => context.system.eventStream.publish(SlotsAvailableNotificationSentEvent(notification))
         case Failure(ex) => log.error("Error occurred on sending IFTT notification", ex)
       }
     case x => log.error(s"Unrecognized message $x")

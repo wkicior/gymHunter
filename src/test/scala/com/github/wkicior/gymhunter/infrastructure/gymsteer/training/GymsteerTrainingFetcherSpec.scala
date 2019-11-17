@@ -1,5 +1,4 @@
-package com.github.wkicior.gymhunter.infrastructure.gymsteer
-
+package com.github.wkicior.gymhunter.infrastructure.gymsteer.training
 
 import java.time.OffsetDateTime
 
@@ -10,10 +9,10 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.wkicior.gymhunter.domain.training.{GetTraining, Training}
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.{GymsteerProxy, GymsteerProxyException}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import spray.json.JsString
 
-import scala.io.Source
 import scala.language.postfixOps
 
 
@@ -37,9 +36,9 @@ class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system)
   private val wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(port))
 
 
-  private val gymHunterSupervisor = system.actorOf(GymsteerTrainingFetcher.props("http://localhost:8082"), "GymsteerTrainingFetcher")
+  private val gymsteerProxy = system.actorOf(GymsteerTrainingFetcher.props("http://localhost:8082"), "GymsteerProxy")
 
-  val sampleValidResponse =
+  private val sampleValidResponse =
     """
       |{
       |  "training": {
@@ -99,7 +98,7 @@ class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system)
       |}
     """.stripMargin
 
-  val sampleValidResponseWithoutBookingsOpenAt =
+  private val sampleValidResponseWithoutBookingsOpenAt =
     """
       |{
       |  "training": {
@@ -135,7 +134,7 @@ class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system)
       val probe = TestProbe()
 
       //when
-      gymHunterSupervisor.tell(GetTraining(training.id), probe.ref)
+      gymsteerProxy.tell(GetTraining(training.id), probe.ref)
 
       //then
       probe.expectMsg(training)
@@ -158,7 +157,7 @@ class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system)
       val probe = TestProbe()
 
       //when
-      gymHunterSupervisor.tell(GetTraining(training.id), probe.ref)
+      gymsteerProxy.tell(GetTraining(training.id), probe.ref)
 
       //then
       probe.expectMsg(training)
@@ -181,10 +180,10 @@ class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system)
       val probe = TestProbe()
 
       //when
-      gymHunterSupervisor.tell(GetTraining(training.id), probe.ref)
+      gymsteerProxy.tell(GetTraining(training.id), probe.ref)
 
       //then
-      probe.expectMsg(Failure(GymsteerTrainingFetcherException("Could not deserialize the response: Object is missing required member 'slotsAvailable'")))
+      probe.expectMsg(Failure(GymsteerProxyException("Could not deserialize the response: Object is missing required member 'slotsAvailable'")))
     }
 
     """get training from external service
@@ -203,11 +202,11 @@ class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system)
       val probe = TestProbe()
 
       //when
-      gymHunterSupervisor.tell(GetTraining(101), probe.ref)
+      gymsteerProxy.tell(GetTraining(101), probe.ref)
 
       //then
       val fail = probe.expectMsgType[Failure]
-      fail.cause shouldBe a[GymsteerTrainingFetcherException]
+      fail.cause shouldBe a[GymsteerProxyException]
     }
   }
 }

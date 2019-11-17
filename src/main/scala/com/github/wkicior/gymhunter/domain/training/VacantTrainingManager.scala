@@ -13,27 +13,40 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.language.postfixOps
 
 private [training] object VacantTrainingManager {
-  def props(thsEventStore: ActorRef, ifttNotificationSender: ActorRef): Props = Props(new VacantTrainingManager(TrainingHuntingSubscriptionProvider.props(thsEventStore), SlotsAvailableNotificationSender.props(ifttNotificationSender)))
-  def props(thsProviderProps: Props, slotsAvailableNotificationSenderProps: Props): Props = Props(new VacantTrainingManager(thsProviderProps, slotsAvailableNotificationSenderProps)
+  def props(thsEventStore: ActorRef, ifttNotificationSender: ActorRef, gymsteerProxy: ActorRef): Props = Props(
+    new VacantTrainingManager(
+      TrainingHuntingSubscriptionProvider.props(thsEventStore),
+      SlotsAvailableNotificationSender.props(ifttNotificationSender),
+      TrainingBooker.props(gymsteerProxy)))
+  def props(thsProviderProps: Props, slotsAvailableNotificationSenderProps: Props, trainingBookerProps: Props): Props = Props(
+    new VacantTrainingManager(thsProviderProps, slotsAvailableNotificationSenderProps, trainingBookerProps)
   )
   final case class ProcessVacantTraining(training: Training)
 }
 
-class VacantTrainingManager(thsProviderProps: Props, slotsAvailableNotificationSenderProps: Props) extends Actor with ActorLogging {
+class VacantTrainingManager(thsProviderProps: Props, slotsAvailableNotificationSenderProps: Props, trainingBookerProps: Props) extends Actor with ActorLogging {
   import VacantTrainingManager._
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 
   val thsProvider: ActorRef = context.actorOf(thsProviderProps)
   val slotsAvailableNotificationSender: ActorRef = context.actorOf(slotsAvailableNotificationSenderProps)
-
+  val trainingBooker: ActorRef = context.actorOf(trainingBookerProps)
 
   def receive: PartialFunction[Any, Unit] = {
     case ProcessVacantTraining(training: Training) =>
       log.info(s"slots available on $training")
       getSubscriptions(training.id)
-        .foreach(trainings =>
-          trainings
-            .foreach(t => slotsAvailableNotificationSender ! SendNotification(Notification(training.start_date, t.clubId, t.id))))
+        .foreach(subscriptions =>
+          subscriptions
+            .foreach(ths => performAutoBookingOrSendNotification(training, ths)))
+  }
+
+  private def performAutoBookingOrSendNotification(training: Training, ths: TrainingHuntingSubscription) = {
+    if (ths.canBeAutoBooked) {
+      trainingBooker ! TrainingBooker.BookTraining(ths)
+    } else {
+      slotsAvailableNotificationSender ! SendNotification(Notification(training.start_date, ths.clubId, ths.id))
+    }
   }
 
   private def getSubscriptions(trainingId: Long): Future[Set[TrainingHuntingSubscription]] = {

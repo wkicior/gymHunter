@@ -1,13 +1,13 @@
-package com.github.wkicior.gymhunter.infrastructure.gymsteer
+package com.github.wkicior.gymhunter.infrastructure.gymsteer.training
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
-import com.github.wkicior.gymhunter.app.{Settings, SettingsImpl}
 import com.github.wkicior.gymhunter.domain.training.{GetTraining, Training}
-import spray.json.DeserializationException
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerProxyException
+import spray.json.{DeserializationException, RootJsonFormat}
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -17,9 +17,6 @@ case class TrainingResponse(training: Training)
 object GymsteerTrainingFetcher {
   def props(hostname: String): Props = Props(new GymsteerTrainingFetcher(hostname))
 }
-
-
-final case class GymsteerTrainingFetcherException(msg: String) extends RuntimeException(msg)
 
 class GymsteerTrainingFetcher(hostname: String) extends Actor with ActorLogging {
   import akka.pattern.pipe
@@ -39,13 +36,13 @@ class GymsteerTrainingFetcher(hostname: String) extends Actor with ActorLogging 
                 case ex: DeserializationException =>
                   val msg = s"Could not deserialize the response: ${ex.getMessage}"
                   log.error(msg)
-                  Future.failed(GymsteerTrainingFetcherException(msg))
+                  Future.failed(GymsteerProxyException(msg))
               }
 
           case x => {
             val msg = s"Something is wrong on getting the training $id: $x"
             log.error(msg)
-            Future.failed(GymsteerTrainingFetcherException(msg))
+            Future.failed(GymsteerProxyException(msg))
           }
         }
         .map(tr => tr.training)

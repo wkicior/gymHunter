@@ -3,6 +3,7 @@ package com.github.wkicior.gymhunter.domain.training
 import java.time.OffsetDateTime
 
 final case class GetTraining(id: Long)
+final case class BookTraining(id: Long)
 
 case class Training(id: Long, slotsAvailable: Int, bookings_open_at: Option[OffsetDateTime], start_date: OffsetDateTime) {
   def canBeBooked: Boolean = {
