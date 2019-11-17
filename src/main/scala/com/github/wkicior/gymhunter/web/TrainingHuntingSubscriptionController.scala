@@ -23,7 +23,7 @@ import scala.util.{Failure, Success}
 trait TrainingHuntingSubscriptionController {
   implicit def system: ActorSystem
   implicit def trainingHuntingSubscriptionEventStore: ActorRef
-  import com.github.wkicior.gymhunter.app.JsonProtocol._
+  import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._
 
   lazy val thsProvider: ActorRef = system.actorOf(TrainingHuntingSubscriptionProvider.props(trainingHuntingSubscriptionEventStore))
   lazy val thsCommandHandler: ActorRef = system.actorOf(TrainingHuntingSubscriptionCommandHandler.props(trainingHuntingSubscriptionEventStore))

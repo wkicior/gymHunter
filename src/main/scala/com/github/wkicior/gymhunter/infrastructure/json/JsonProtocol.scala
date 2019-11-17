@@ -1,15 +1,15 @@
-package com.github.wkicior.gymhunter.app
+package com.github.wkicior.gymhunter.infrastructure.json
 
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import com.github.wkicior.gymhunter.domain.training._
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.CreateTrainingHuntingSubscriptionCommand
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId}
+import com.github.wkicior.gymhunter.domain.training.Training
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.TrainingResponse
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
-import spray.json.{JsString, JsValue, _}
+import spray.json.{DefaultJsonProtocol, JsString, JsValue, NullOptions, RootJsonFormat, deserializationError}
 
 object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport with NullOptions {
 

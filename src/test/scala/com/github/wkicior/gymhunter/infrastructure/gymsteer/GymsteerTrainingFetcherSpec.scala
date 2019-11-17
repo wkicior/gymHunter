@@ -21,7 +21,7 @@ class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system)
   def this() = this(ActorSystem("GymHunter"))
 
 
-  import com.github.wkicior.gymhunter.app.JsonProtocol._
+  import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._
 
   override def beforeAll: Unit = {
     wireMockServer.start()

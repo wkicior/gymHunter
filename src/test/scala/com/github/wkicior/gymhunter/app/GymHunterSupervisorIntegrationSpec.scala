@@ -26,7 +26,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
   def this() = this(ActorSystem("GymHunter"))
 
 
-  import JsonProtocol._
+  import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._
 
   override def beforeAll: Unit = {
     wireMockServer.start()

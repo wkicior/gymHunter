@@ -1,4 +1,4 @@
-package com.github.wkicior.gymhunter.app
+package com.github.wkicior.gymhunter.infrastructure.json
 
 import java.time.{OffsetDateTime, ZoneOffset}
 
@@ -11,7 +11,7 @@ import scala.language.postfixOps
 
 class JsonProtocolSpec extends WordSpec with Matchers {
 
-  import JsonProtocol._
+  import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._
 
   "A JsonProtocol " should {
     "write OffsetDateTime value to JSON" in {
@@ -41,7 +41,7 @@ class JsonProtocolSpec extends WordSpec with Matchers {
         "id" -> JsString(trainingToHunt.id.toString),
         "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
         "clubId" -> JsNumber(trainingToHunt.clubId),
-        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime),
+        "huntingDeadline" -> OffsetDateTimeFormat.write(trainingToHunt.huntingDeadline),
         "notificationOnSlotsAvailableSentDateTime" -> JsNull,
         "autoBookingDeadline" -> JsNull
       )
@@ -55,7 +55,7 @@ class JsonProtocolSpec extends WordSpec with Matchers {
         "id" -> JsString(trainingToHunt.id.toString),
         "externalSystemId" -> JsNumber(trainingToHunt.externalSystemId),
         "clubId" -> JsNumber(trainingToHunt.clubId),
-        "huntingEndTime" -> OffsetDateTimeFormat.write(trainingToHunt.huntingEndTime),
+        "huntingDeadline" -> OffsetDateTimeFormat.write(trainingToHunt.huntingDeadline),
         "notificationOnSlotsAvailableSentDateTime" -> OffsetDateTimeFormat.write(trainingToHunt.notificationOnSlotsAvailableSentDateTime.get),
         "autoBookingDeadline" -> OffsetDateTimeFormat.write(trainingToHunt.autoBookingDeadline.get)
 

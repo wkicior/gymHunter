@@ -15,7 +15,7 @@ import org.scalatest.{Inside, Matchers, WordSpec}
 
 class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers with ScalatestRouteTest with Inside {
   "TrainingHuntingSubscriptionController" should {
-    import com.github.wkicior.gymhunter.app.JsonProtocol._
+    import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._
 
     val thsEventStore = system.actorOf(TrainingHuntingSubscriptionEventStore.props, "TrainingHuntingSubscriptionEventStore")
     val routes = new RestApi(system, thsEventStore).routes
@@ -46,11 +46,11 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
       Post("/api/training-hunting-subscriptions", CreateTrainingHuntingSubscriptionCommand(123, 8, endOfHuntDatetime)) ~> addCredentials(validCredentials) ~> routes ~> check {
         status shouldEqual StatusCodes.Created
         val ths = responseAs[TrainingHuntingSubscription]
-        inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
+        inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingDeadline, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
             id.toString should not be empty
             externalSystemId shouldEqual 123
             clubId shouldEqual 8
-            huntingEndTime shouldEqual endOfHuntDatetime
+            huntingDeadline shouldEqual endOfHuntDatetime
             notificationOnSlotsAvailableSentTime shouldBe None
             autoBookingDeadline shouldBe None
         }
@@ -65,11 +65,11 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
       Post("/api/training-hunting-subscriptions", CreateTrainingHuntingSubscriptionCommand(123, 8, date, Some(date))) ~> addCredentials(validCredentials) ~> routes ~> check {
         status shouldEqual StatusCodes.Created
         val ths = responseAs[TrainingHuntingSubscription]
-        inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
+        inside(ths) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingDeadline, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
           id.toString should not be empty
           externalSystemId shouldEqual 123
           clubId shouldEqual 8
-          huntingEndTime shouldEqual date
+          huntingDeadline shouldEqual date
           notificationOnSlotsAvailableSentTime shouldBe None
           autoBookingDeadline shouldBe Some(date)
         }
@@ -94,11 +94,11 @@ class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers w
         Delete(s"/api/training-hunting-subscriptions/${ths.id}") ~> addCredentials(validCredentials) ~> routes ~> check {
           status shouldEqual StatusCodes.OK
           val deletedThs = responseAs[TrainingHuntingSubscription]
-          inside(deletedThs) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingEndTime, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
+          inside(deletedThs) { case TrainingHuntingSubscription(id, externalSystemId, clubId, huntingDeadline, notificationOnSlotsAvailableSentTime, autoBookingDeadline) =>
             id.toString should not be empty
             externalSystemId shouldEqual 124
             clubId shouldEqual 8
-            huntingEndTime shouldEqual endOfHuntDatetime
+            huntingDeadline shouldEqual endOfHuntDatetime
             notificationOnSlotsAvailableSentTime shouldBe None
             autoBookingDeadline shouldBe None
           }

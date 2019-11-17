@@ -36,13 +36,13 @@ class TrainingHuntingSubscriptionCommandHandlerSpec(_system: ActorSystem) extend
     "create new TrainingHuntingSubscription and store it to the event store" in {
       //given
       val createThsCommand = CreateTrainingHuntingSubscriptionCommand(1L, 2L, OffsetDateTime.now())
-      val sampleThs = new TrainingHuntingSubscriptionAggregate(TrainingHuntingSubscriptionId(), 1L, 2L, createThsCommand.huntingEndTime)
+      val sampleThs = new TrainingHuntingSubscriptionAggregate(TrainingHuntingSubscriptionId(), 1L, 2L, createThsCommand.huntingDeadline)
       //when
       thsCommandHandler.tell(createThsCommand, probe.ref)
 
       //then
       thsEventStoreProbe.expectMsgPF() {
-        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAddedEvent(_, 1L, 2L, createThsCommand.huntingEndTime, None, _, _))) => ok
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAddedEvent(_, 1L, 2L, createThsCommand.`huntingDeadline`, None, _, _))) => ok
       }
       thsEventStoreProbe.reply(Right(sampleThs))
 
@@ -54,13 +54,13 @@ class TrainingHuntingSubscriptionCommandHandlerSpec(_system: ActorSystem) extend
     "create new TrainingHuntingSubscription with booking auto deadline and store it to the event store" in {
       //given
       val createThsCommand = CreateTrainingHuntingSubscriptionCommand(1L, 2L, OffsetDateTime.now, Some(OffsetDateTime.now))
-      val sampleThs = new TrainingHuntingSubscriptionAggregate(TrainingHuntingSubscriptionId(), 1L, 2L, createThsCommand.huntingEndTime, createThsCommand.autoBookingDeadline)
+      val sampleThs = new TrainingHuntingSubscriptionAggregate(TrainingHuntingSubscriptionId(), 1L, 2L, createThsCommand.huntingDeadline, createThsCommand.autoBookingDeadline)
       //when
       thsCommandHandler.tell(createThsCommand, probe.ref)
 
       //then
       thsEventStoreProbe.expectMsgPF() {
-        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAddedEvent(_, 1L, 2L, createThsCommand.huntingEndTime, createThsCommand.autoBookingDeadline, _, _))) => ok
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAddedEvent(_, 1L, 2L, createThsCommand.`huntingDeadline`, createThsCommand.autoBookingDeadline, _, _))) => ok
       }
       thsEventStoreProbe.reply(Right(sampleThs))
 

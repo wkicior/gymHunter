@@ -23,7 +23,7 @@ final case class GymsteerTrainingFetcherException(msg: String) extends RuntimeEx
 
 class GymsteerTrainingFetcher(hostname: String) extends Actor with ActorLogging {
   import akka.pattern.pipe
-  import com.github.wkicior.gymhunter.app.JsonProtocol._
+  import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._
   import context.dispatcher
 
   implicit val system: ActorSystem = context.system

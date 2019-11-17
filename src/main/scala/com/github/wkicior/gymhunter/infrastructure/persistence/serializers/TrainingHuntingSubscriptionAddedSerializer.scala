@@ -36,7 +36,7 @@ class TrainingHuntingSubscriptionAddedSerializer extends SerializerWithStringMan
       .setTrainingHuntingSubscriptionId(event.id.toString)
       .setExternalSystemId(event.externalSystemId)
       .setClubId(event.clubId)
-      .setHuntingEndTime(event.huntingEndTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+      .setHuntingDeadline(event.huntingDeadline.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
       .setAutoBookingDeadline(event.autoBookingDeadline.map(abd => abd.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)).orNull)
       .build()
   }
@@ -46,7 +46,7 @@ class TrainingHuntingSubscriptionAddedSerializer extends SerializerWithStringMan
       TrainingHuntingSubscriptionId(proto.getTrainingHuntingSubscriptionId),
       proto.getExternalSystemId,
       proto.getClubId,
-      OffsetDateTime.parse(proto.getHuntingEndTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+      OffsetDateTime.parse(proto.getHuntingDeadline, DateTimeFormatter.ISO_OFFSET_DATE_TIME),
       Option(proto.getAutoBookingDeadline).filter(abd => abd.nonEmpty).map(abd => OffsetDateTime.parse(abd, DateTimeFormatter.ISO_OFFSET_DATE_TIME)),
       UUID.fromString(proto.getId),
       OffsetDateTime.parse(proto.getCreatedDateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME)

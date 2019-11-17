@@ -13,7 +13,7 @@ trait TrainingHuntingSubscriptionEvent extends EventSourced {
 final case class TrainingHuntingSubscriptionAddedEvent(id: TrainingHuntingSubscriptionId,
                                                        externalSystemId: Long,
                                                        clubId: Long,
-                                                       huntingEndTime: OffsetDateTime,
+                                                       huntingDeadline: OffsetDateTime,
                                                        autoBookingDeadline: Option[OffsetDateTime] = None,
                                                        override val eventId: UUID = UUID.randomUUID,
                                                        override val createdDateTime: OffsetDateTime = OffsetDateTime.now

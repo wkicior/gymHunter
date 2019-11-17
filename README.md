@@ -48,7 +48,7 @@ GYMHUNTER_STORE_DIR - directory for journal and snapshots storage
   -d '{
 	"externalSystemId": 699316,
 	"clubId": 8,
-	"huntingEndTime": "2019-11-17T22:00:00+0200"
+	"huntingDeadline": "2019-11-17T22:00:00+0200"
    }'
 ```
 

@@ -135,7 +135,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
 
     """start new hunting
       |by fetching all trainings trainings hunting subscriptions
-      |and ignore training hunting subscriptions for which huntingEndTime has passed
+      |and ignore training hunting subscriptions for which huntingDeadline has passed
     """.stripMargin in {
       //given
       val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 44L, 6L, OffsetDateTime.now.minusDays(1), None)

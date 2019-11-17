@@ -7,7 +7,8 @@ import com.github.wkicior.gymhunter.domain.training.TrainingHunter
 import com.github.wkicior.gymhunter.domain.training.TrainingHunter.Hunt
 
 object GymHunterSupervisor {
-  def props(trainingHuntingSubscriptionEventStore: ActorRef, gymsteerTrainingFetcher: ActorRef, ifttNotificationSender: ActorRef): Props = Props(new GymHunterSupervisor(trainingHuntingSubscriptionEventStore, gymsteerTrainingFetcher, ifttNotificationSender))
+  def props(trainingHuntingSubscriptionEventStore: ActorRef, gymsteerTrainingFetcher: ActorRef, ifttNotificationSender: ActorRef): Props = Props(
+    new GymHunterSupervisor(trainingHuntingSubscriptionEventStore, gymsteerTrainingFetcher, ifttNotificationSender))
   final case class RunGymHunting()
 }
 
@@ -17,7 +18,8 @@ class GymHunterSupervisor(trainingHuntingSubscriptionEventStore: ActorRef, train
   override def postStop(): Unit = log.info("GymHunter Application stopped")
 
   val trainingHunter: ActorRef = context.actorOf(TrainingHunter.props(trainingHuntingSubscriptionEventStore, trainingFetcher, ifttNotificationSender), "trainingHunter")
-  val trainingSlotsAvailableNotificationHandler: ActorRef = context.actorOf(TrainingSlotsAvailableNotificationSentEventHandler.props(trainingHuntingSubscriptionEventStore), "trainingSlotsAvailableNotificationHandler")
+  val trainingSlotsAvailableNotificationHandler: ActorRef = context.actorOf(
+    TrainingSlotsAvailableNotificationSentEventHandler.props(trainingHuntingSubscriptionEventStore), "trainingSlotsAvailableNotificationHandler")
 
   def receive: PartialFunction[Any, Unit] = {
     case RunGymHunting() => trainingHunter ! Hunt()
