@@ -26,7 +26,7 @@ object GymHunterApp extends App {
   val settings: SettingsImpl = Settings(system)
 
   val trainingHuntingSubscriptionEventStore = system.actorOf(TrainingHuntingSubscriptionEventStore.props, "TrainingHuntingSubscriptionEventStore")
-  val gymsteerProxy = system.actorOf(RoundRobinPool(8).props(GymsteerProxy.props(settings.gymsteerHost)), "GymsteerProxy")
+  val gymsteerProxy = system.actorOf(RoundRobinPool(8).props(GymsteerProxy.props(settings.gymsteerHost, settings.gymsteerUsername, settings.gymsteerPassword)), "GymsteerProxy")
   val ifttNotificationSender = system.actorOf(IFTTNotificationSender.props, "IFTTNotificationSender")
   val supervisor: ActorRef = system.actorOf(GymHunterSupervisor.props(trainingHuntingSubscriptionEventStore, gymsteerProxy, ifttNotificationSender), "GymHunterSupervisor")
   scheduler.schedule("GymHunterSupervisorScheduler", supervisor, RunGymHunting())

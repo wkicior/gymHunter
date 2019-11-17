@@ -7,6 +7,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.CreateTrainingHuntingSubscriptionCommand
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId}
 import com.github.wkicior.gymhunter.domain.training.Training
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.auth.GymsteerLoginRequest
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.training.TrainingResponse
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
 import spray.json.{DefaultJsonProtocol, JsString, JsValue, NullOptions, RootJsonFormat, deserializationError}
@@ -36,4 +37,5 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport with NullO
   implicit val trainingHuntingSubscriptionFormat: RootJsonFormat[TrainingHuntingSubscription] = jsonFormat7(TrainingHuntingSubscription)
   implicit val trainingHuntingSubscriptionRequestFormat: RootJsonFormat[CreateTrainingHuntingSubscriptionCommand] = jsonFormat4(CreateTrainingHuntingSubscriptionCommand)
   implicit val ifttNotificationFormat: RootJsonFormat[IFTTNotification] = jsonFormat2(IFTTNotification)
+  implicit val gymsteerLoginRequestFormat: RootJsonFormat[GymsteerLoginRequest] = jsonFormat2(GymsteerLoginRequest)
 }

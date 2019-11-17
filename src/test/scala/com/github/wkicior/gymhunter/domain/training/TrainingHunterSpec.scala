@@ -6,7 +6,7 @@ import akka.actor.Status.Failure
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId, TrainingHuntingSubscriptionProvider}
-import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerProxyException
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerException
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -123,7 +123,7 @@ class TrainingHunterSpec(_system: ActorSystem) extends TestKit(_system) with Mat
           TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 42, 8, OffsetDateTime.now, None)))
 
       gymsteerProxyProbe.expectMsg(GetTraining(43L))
-      gymsteerProxyProbe.reply(Failure(GymsteerProxyException("some error on getting the training")))
+      gymsteerProxyProbe.reply(Failure(GymsteerException("some error on getting the training")))
 
       gymsteerProxyProbe.expectMsg(GetTraining(42L))
       gymsteerProxyProbe.reply(sampleVacantTraining)

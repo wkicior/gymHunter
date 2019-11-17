@@ -6,8 +6,8 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import com.github.wkicior.gymhunter.domain.training.{GetTraining, Training}
-import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerProxyException
-import spray.json.{DeserializationException, RootJsonFormat}
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerException
+import spray.json.DeserializationException
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -32,18 +32,16 @@ class GymsteerTrainingFetcher(hostname: String) extends Actor with ActorLogging 
       responseFuture
         .flatMap {
           case response@HttpResponse(StatusCodes.OK, _, _, _) =>
-              Unmarshal(response).to[TrainingResponse].recoverWith {
-                case ex: DeserializationException =>
-                  val msg = s"Could not deserialize the response: ${ex.getMessage}"
-                  log.error(msg)
-                  Future.failed(GymsteerProxyException(msg))
-              }
-
-          case x => {
+            Unmarshal(response).to[TrainingResponse].recoverWith {
+              case ex: DeserializationException =>
+                val msg = s"Could not deserialize the response: ${ex.getMessage}"
+                log.error(msg)
+                Future.failed(GymsteerException(msg))
+            }
+          case x =>
             val msg = s"Something is wrong on getting the training $id: $x"
             log.error(msg)
-            Future.failed(GymsteerProxyException(msg))
-          }
+            Future.failed(GymsteerException(msg))
         }
         .map(tr => tr.training)
         .pipeTo(sender())

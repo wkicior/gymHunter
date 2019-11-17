@@ -9,7 +9,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.wkicior.gymhunter.domain.training.{GetTraining, Training}
-import com.github.wkicior.gymhunter.infrastructure.gymsteer.{GymsteerProxy, GymsteerProxyException}
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerException
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import spray.json.JsString
 
@@ -18,7 +18,6 @@ import scala.language.postfixOps
 
 class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system) with Matchers with WordSpecLike with BeforeAndAfterAll {
   def this() = this(ActorSystem("GymHunter"))
-
 
   import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._
 
@@ -183,7 +182,7 @@ class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system)
       gymsteerProxy.tell(GetTraining(training.id), probe.ref)
 
       //then
-      probe.expectMsg(Failure(GymsteerProxyException("Could not deserialize the response: Object is missing required member 'slotsAvailable'")))
+      probe.expectMsg(Failure(GymsteerException("Could not deserialize the response: Object is missing required member 'slotsAvailable'")))
     }
 
     """get training from external service
@@ -206,7 +205,7 @@ class GymsteerTrainingFetcherSpec(_system: ActorSystem) extends TestKit(_system)
 
       //then
       val fail = probe.expectMsgType[Failure]
-      fail.cause shouldBe a[GymsteerProxyException]
+      fail.cause shouldBe a[GymsteerException]
     }
   }
 }

@@ -14,6 +14,7 @@ import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscript
 import com.github.wkicior.gymhunter.domain.subscription._
 import com.github.wkicior.gymhunter.domain.training.Training
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerProxy
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.auth.GymsteerLoginRequest
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.training.TrainingResponse
 import com.github.wkicior.gymhunter.infrastructure.iftt.{IFTTNotification, IFTTNotificationSender}
 import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingHuntingSubscriptionEventStore
@@ -43,7 +44,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
   private val wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(port))
 
   private val thsEventStore = system.actorOf(TrainingHuntingSubscriptionEventStore.props, "TrainingHuntingSubscriptionEventStore")
-  private val gymsteerProxy = system.actorOf(GymsteerProxy.props("http://localhost:8081"), "GymsteerProxy")
+  private val gymsteerProxy = system.actorOf(GymsteerProxy.props("http://localhost:8081", "root", "Z10N0101"), "GymsteerProxy")
   private val ifttNotificationSender = system.actorOf(IFTTNotificationSender.props, "IFTTNotificationSender")
   private val thsCommandHandler = system.actorOf(TrainingHuntingSubscriptionCommandHandler.props(thsEventStore))
 
@@ -100,11 +101,12 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
       //given
       val training = Training(44L, 1, Some(OffsetDateTime.now().minusDays(1)), OffsetDateTime.now().plusDays(1))
       val trainingResponse = TrainingResponse(training)
-      val getTrainingPath = s"/api/clubs/8/trainings/${training.id}"
+      val trainingPath = s"/api/clubs/8/trainings/${training.id}"
+      val bookingPath = s"$trainingPath/user-booking"
 
 
       wireMockServer.stubFor(
-        get(urlPathEqualTo(getTrainingPath))
+        get(urlPathEqualTo(trainingPath))
           .willReturn(aResponse()
             .withHeader("Content-Type", "application/json")
             .withBody(trainingResponseFormat.write(trainingResponse).toString())
@@ -112,16 +114,16 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
 
       wireMockServer.stubFor(
         post(urlPathEqualTo(gymsteerLoginPath))
+          .withRequestBody(equalTo(gymsteerLoginRequestFormat.write(GymsteerLoginRequest("root", "Z10N0101")).toString()))
           .willReturn(aResponse()
             .withHeader("Access-Token", "sample-access-token")
             .withStatus(200)))
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo(getTrainingPath))
+        post(urlPathEqualTo(bookingPath))
           .withHeader("Access-Token", equalTo("some-access-token"))
           .willReturn(aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(trainingResponseFormat.write(trainingResponse).toString())
             .withStatus(200)))
 
       val probe = TestProbe()
@@ -132,7 +134,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
       gymHunterSupervisor.tell(GymHunterSupervisor.RunGymHunting(), probe.ref)
 
       //then
-      Try(awaitCond(hasTrainingBeenBooked(getTrainingPath))).orElse(Try.apply(verifyTrainingHasBeenBooked(getTrainingPath))).get
+      Try(awaitCond(hasTrainingBeenBooked(bookingPath))).orElse(Try.apply(verifyTrainingHasBeenBooked(bookingPath))).get
 
       thsEventStore.tell(GetTrainingHuntingSubscriptionAggregate(tth.id), probe.ref)
       val updateTthAggregate = probe.expectMsgType[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
