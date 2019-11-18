@@ -126,7 +126,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
           .withHeader("Access-Token", equalTo("sample-access-token"))
           .willReturn(aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(200)))
+            .withStatus(201)))
 
       wireMockServer.stubFor(
         post(urlPathEqualTo(postIFTTAutoBookingNotificationPath))

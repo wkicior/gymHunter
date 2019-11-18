@@ -43,7 +43,7 @@ class GymsteerTrainingBookerSpec(_system: ActorSystem) extends TestKit(_system) 
         post(urlPathEqualTo(getBookingPath))
           .withHeader("Access-Token", equalTo("some-token"))
           .willReturn(aResponse()
-            .withStatus(200)))
+            .withStatus(201)))
 
       val probe = TestProbe()
 

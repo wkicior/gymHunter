@@ -12,7 +12,7 @@ import com.github.wkicior.gymhunter.infrastructure.persistence.{TrainingHuntingS
 
 class TrainingHuntingSubscriptionAutoBookingPerformedSerializer extends SerializerWithStringManifest {
 
-  override def identifier: Int = 3333
+  override def identifier: Int = 4444
   final val TrainingHuntingSubscriptionAutoBookingPerformedEventManifest = s"${classOf[TrainingHuntingSubscriptionAutoBookingPerformedEvent].getName}_v1"
 
   override def manifest(o: AnyRef): String = TrainingHuntingSubscriptionAutoBookingPerformedEventManifest

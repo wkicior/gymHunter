@@ -21,5 +21,7 @@ services:
       - GYMHUNTER_PASSWORD
       - GYMHUNTER_STORAGE_DIR=/mnt/gymhunter-data
       - GYMHUNTER_SCHEDULER=0 * * ? * *
+      - GYMSTEER_USERNAME
+      - GYMSTEER_PASSWORD
       - TZ=Europe/Warsaw
 

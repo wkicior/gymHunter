@@ -34,8 +34,9 @@ class GymsteerTrainingBooker(hostname: String) extends Actor with ActorLogging {
           headers = Seq(new RawHeader("Access-Token", authToken))))
       responseFuture
         .flatMap {
-          case response@HttpResponse(StatusCodes.OK, _, _, _) =>
-           Future.successful(Success)
+          case response@HttpResponse(StatusCodes.Created, _, _, _) =>
+            response.discardEntityBytes()
+            Future.successful(Success)
           case x =>
             val msg = s"Something is wrong on booking the training: $x"
             log.error(msg)
