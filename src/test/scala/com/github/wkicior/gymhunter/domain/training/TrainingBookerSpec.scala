@@ -5,7 +5,7 @@ import java.time.OffsetDateTime
 import akka.actor.Status.Success
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionAutoBookingEvent, TrainingHuntingSubscriptionId}
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -35,7 +35,7 @@ class TrainingBookerSpec(_system: ActorSystem) extends TestKit(_system) with Mat
     """.stripMargin in {
       //given
       val probe = TestProbe()
-      system.eventStream.subscribe(probe.ref, classOf[TrainingHuntingSubscriptionAutoBookingEvent])
+      system.eventStream.subscribe(probe.ref, classOf[TrainingAutoBookingPerformedEvent])
       val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 1L, OffsetDateTime.now().plusDays(1))
 
       //when
@@ -46,7 +46,7 @@ class TrainingBookerSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       gymsteerProxyProbe.reply(Success)
 
       probe.expectMsgPF() {
-        case ok@TrainingHuntingSubscriptionAutoBookingEvent(ths.id, _, _) => ok
+        case ok@TrainingAutoBookingPerformedEvent(ths.externalSystemId, ths.id) => ok
       }
     }
   }

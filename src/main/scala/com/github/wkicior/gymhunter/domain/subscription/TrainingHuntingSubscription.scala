@@ -58,6 +58,7 @@ case class TrainingHuntingSubscriptionAggregate(id: TrainingHuntingSubscriptionI
     trainingHuntingSubscriptionEvent match {
       case deleted: TrainingHuntingSubscriptionDeletedEvent => logger.info(s"TrainingHuntingSubscription deleted ${deleted.id}")
       case notificationSent: TrainingHuntingSubscriptionNotificationSentEvent => this.notificationOnSlotsAvailableSentTime = Some(notificationSent.createdDateTime)
+      case autoBooking: TrainingHuntingSubscriptionAutoBookingEvent => this.autoBookingDateTime = Some(autoBooking.createdDateTime)
       case event => logger.warning(s"unrecognized event: $event")
     }
     this
@@ -75,6 +76,10 @@ case class TrainingHuntingSubscriptionAggregate(id: TrainingHuntingSubscriptionI
 
   def notifyOnSlotsAvailable(): Unit = {
     applyPendingEvent(TrainingHuntingSubscriptionNotificationSentEvent(id))
+  }
+
+  def autoBookingPerformed(): Unit = {
+    applyPendingEvent(TrainingHuntingSubscriptionAutoBookingEvent(id))
   }
 }
 

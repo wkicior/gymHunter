@@ -26,7 +26,7 @@ class TrainingBooker(gymsteerProxy: ActorRef) extends Actor with ActorLogging {
     case BookTraining(ths: TrainingHuntingSubscription) =>
       implicit val timeout: Timeout = Timeout(5 seconds)
       ask(gymsteerProxy, com.github.wkicior.gymhunter.domain.training.BookTraining(ths.externalSystemId)).onComplete {
-        case Success(_) => context.system.eventStream.publish(TrainingHuntingSubscriptionAutoBookingEvent(ths.id))
+        case Success(_) => context.system.eventStream.publish(TrainingAutoBookingPerformedEvent(ths.externalSystemId, ths.id))
         case Failure(ex) => log.error("Error occurred on sending IFTT notification", ex)
       }
     case x => log.error(s"unrecognized message $x")

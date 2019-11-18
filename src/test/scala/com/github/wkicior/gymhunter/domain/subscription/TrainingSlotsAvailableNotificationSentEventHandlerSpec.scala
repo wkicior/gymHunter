@@ -19,7 +19,6 @@ class TrainingSlotsAvailableNotificationSentEventHandlerSpec(_system: ActorSyste
   }
 
   val thsEventStoreProbe = TestProbe()
-  val slotsAvailableNotificationSenderProbe = TestProbe()
 
   val thsEventStoreProps = Props(new Actor {
     def receive: PartialFunction[Any, Unit] = {
@@ -27,13 +26,8 @@ class TrainingSlotsAvailableNotificationSentEventHandlerSpec(_system: ActorSyste
     }
   })
 
-  val slotsAvailableNotificationSenderProps = Props(new Actor {
-    def receive: PartialFunction[Any, Unit] = {
-      case x => slotsAvailableNotificationSenderProbe.ref forward x
-    }
-  })
   private val thsEventStore = system.actorOf(thsEventStoreProps)
-  private val thsCommandHandler = system.actorOf(TrainingSlotsAvailableNotificationSentEventHandler.props(thsEventStore, slotsAvailableNotificationSenderProps))
+  private val thsCommandHandler = system.actorOf(TrainingSlotsAvailableNotificationSentEventHandler.props(thsEventStore))
 
   "A TrainingSlotsAvailableNotificationHandler Actor" should {
     """handle notification command on slots available for training hunting subscriptions

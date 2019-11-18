@@ -7,6 +7,7 @@ import akka.testkit.{TestKit, TestProbe}
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.wkicior.gymhunter.domain.notification.Notification
 import com.github.wkicior.gymhunter.domain.subscription.OptionalTrainingHuntingSubscription.OptionalTrainingHuntingSubscription
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.CreateTrainingHuntingSubscriptionCommand
@@ -121,13 +122,13 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
 
       wireMockServer.stubFor(
         post(urlPathEqualTo(bookingPath))
-          .withHeader("Access-Token", equalTo("some-access-token"))
+          .withHeader("Access-Token", equalTo("sample-access-token"))
           .willReturn(aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)))
 
       val probe = TestProbe()
-      thsCommandHandler.tell(CreateTrainingHuntingSubscriptionCommand(44L, 8L, OffsetDateTime.now().plusDays(1), Some(OffsetDateTime.now().minusHours(2))), probe.ref)
+      thsCommandHandler.tell(CreateTrainingHuntingSubscriptionCommand(44L, 8L, OffsetDateTime.now().plusDays(1), Some(OffsetDateTime.now().plusHours(2))), probe.ref)
       val tth = probe.expectMsgType[TrainingHuntingSubscription]
 
       //when
@@ -142,15 +143,15 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
     }
   }
 
-  private def hasIfttBeenNotified(training: Training) = {
+  private def hasIfttBeenNotified(training: Training): Boolean = {
     !wireMockServer.findAll(ifttPost(training)).isEmpty
   }
 
-  private def verifyIfttBeenNotified(training: Training) = {
+  private def verifyIfttBeenNotified(training: Training): Unit = {
     wireMockServer.verify(ifttPost(training))
   }
 
-  private def ifttPost(training: Training) = {
+  private def ifttPost(training: Training): RequestPatternBuilder = {
     val body: String = ifttNotificationFormat.write(new IFTTNotification(Notification(training.start_date, 8L, TrainingHuntingSubscriptionId()))).toString()
     postRequestedFor(urlEqualTo(postNotificationPath))
       .withHeader("Content-Type", equalTo("application/json"))
@@ -161,12 +162,12 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
     !wireMockServer.findAll(gymsteerAutobookingPost(trainingPath)).isEmpty
   }
 
-  private def verifyTrainingHasBeenBooked(trainingPath: String) = {
+  private def verifyTrainingHasBeenBooked(trainingPath: String): Unit = {
     wireMockServer.verify(gymsteerAutobookingPost(trainingPath))
   }
 
-  private def gymsteerAutobookingPost(trainingPath: String) = {
+  private def gymsteerAutobookingPost(trainingPath: String): RequestPatternBuilder = {
     postRequestedFor(urlEqualTo(trainingPath))
-      .withHeader("Access-Token", equalTo("some-access-token"))
+      .withHeader("Access-Token", equalTo("sample-access-token"))
   }
 }

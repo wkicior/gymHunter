@@ -1,13 +1,13 @@
 package com.github.wkicior.gymhunter.infrastructure.gymsteer.training
 
+import akka.actor.Status.Success
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.http.scaladsl.model.headers.{CustomHeader, RawHeader}
 import akka.stream.ActorMaterializer
-import com.github.wkicior.gymhunter.domain.training.{GetTraining, Training}
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerException
-import spray.json.DeserializationException
+import com.github.wkicior.gymhunter.infrastructure.gymsteer.training.GymsteerTrainingBooker.BookTraining
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -21,13 +21,27 @@ object GymsteerTrainingBooker {
 
 class GymsteerTrainingBooker(hostname: String) extends Actor with ActorLogging {
   import akka.pattern.pipe
-  import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._
   import context.dispatcher
 
   implicit val system: ActorSystem = context.system
   implicit val mat: ActorMaterializer = ActorMaterializer()(context)
 
   def receive: PartialFunction[Any, Unit] = {
+    case BookTraining(id, authToken) =>
+      val responseFuture: Future[HttpResponse] = Http().singleRequest(
+        HttpRequest(method = HttpMethods.POST,
+          uri = s"$hostname/api/clubs/8/trainings/$id/user-booking",
+          headers = Seq(new RawHeader("Access-Token", authToken))))
+      responseFuture
+        .flatMap {
+          case response@HttpResponse(StatusCodes.OK, _, _, _) =>
+           Future.successful(Success)
+          case x =>
+            val msg = s"Something is wrong on booking the training: $x"
+            log.error(msg)
+            Future.failed(GymsteerException(msg))
+        }
+        .pipeTo(sender())
     case _ =>
       log.error("unrecognized message")
   }
