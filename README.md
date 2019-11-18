@@ -14,8 +14,10 @@ Sample message: ```Training {{Value1}} has slots available in club: {{Value2}} (
 GYMHUNTER_PASSWORD - password for basic auth requests
 IFTT_KEY = private key for IFTT Webhooks notifications
 GYMHUNTER_STORE_DIR - directory for journal and snapshots storage
+GYMSTEER_USERNAME - username for external system
+GYMSTEER_PASSWORD - password for external system
  
-##run locally
+## run locally
 ```$ ./sbt run```
 
 
@@ -27,18 +29,18 @@ GYMHUNTER_STORE_DIR - directory for journal and snapshots storage
 
 ```docker-compose up```
 
-#Prod setup
-###create machine (sample):
+# Prod setup
+### create machine (sample):
 ```docker-machine create --driver digitalocean --digitalocean-access-token=[TOKEN] --digitalocean-size s-1vcpu-1gb --digitalocean-region fra1 --digitalocean-image fedora-30-x64 gymhunter-droplet```
 
-###show machine env and switch to machine:
+### show machine env and switch to machine:
 ```docker-machine env gymhunter```
 ```eval $(docker-machine env gymhunter-droplet)```
 
-###Build image and publish to machine
+### Build image and publish to machine
 ```./sbt docker:publishLocal```
 
-###deploy:
+### deploy:
 ```docker-compose -f docker-compose-prod.yml up -d```
 
 ## Create TrainingHuntingSubscription
