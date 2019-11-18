@@ -41,7 +41,7 @@ class TrainingAutoBookingPerformedEventHandlerSpec(_system: ActorSystem) extends
       val sampleThs = TrainingHuntingSubscriptionAggregate(id, 1L, 2L)
 
       //when
-      thsCommandHandler ! TrainingAutoBookingPerformedEvent(sampleThs.externalSystemId, id)
+      thsCommandHandler ! TrainingAutoBookingPerformedEvent(sampleThs.externalSystemId, sampleThs.clubId, id, OffsetDateTime.now)
 
       //then
       thsEventStoreProbe.expectMsg(GetTrainingHuntingSubscriptionAggregate(id))

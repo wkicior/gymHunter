@@ -12,6 +12,7 @@ import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscript
 import com.github.wkicior.gymhunter.domain.subscription._
 import com.github.wkicior.gymhunter.domain.training.{BookTraining, GetTraining, Training}
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
+import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender.SendIFTTNotification
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -78,7 +79,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions] //by VacantTrainingManager
       thsEventStoreProbe.reply(Set(ths()))
 
-      ifttNotificationSenderProbe.expectMsg(new IFTTNotification(Notification(training.start_date, ths.clubId, ths.id)))
+      ifttNotificationSenderProbe.expectMsg(SendIFTTNotification("gymhunter", new IFTTNotification(Notification(training.start_date, ths.clubId, ths.id))))
       ifttNotificationSenderProbe.reply(Status.Success)
 
       thsEventStoreProbe.expectMsg(GetTrainingHuntingSubscriptionAggregate(ths.id)) //by TrainingSlotsAvailableNotificationSentEventHandler
@@ -126,6 +127,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       ths.autoBookingDateTime.get should be <= OffsetDateTime.now
       ths.notificationOnSlotsAvailableSentTime shouldBe None
 
+      ifttNotificationSenderProbe.expectMsg(SendIFTTNotification("gymHunterAutoBooking", new IFTTNotification(Notification(training.start_date, ths.clubId, ths.id))))
     }
 
     """start new hunting

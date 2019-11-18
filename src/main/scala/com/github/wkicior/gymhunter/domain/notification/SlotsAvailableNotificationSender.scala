@@ -5,6 +5,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender.SendNotification
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
+import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender.SendIFTTNotification
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
@@ -25,7 +26,7 @@ class SlotsAvailableNotificationSender(ifttNotificationSender: ActorRef) extends
     case SendNotification(notification) =>
       log.info(s"will send IFTT notification for ${notification.trainingHuntingSubscriptionId}")
       implicit val timeout: Timeout = Timeout(5 seconds)
-      ask(ifttNotificationSender, new IFTTNotification(notification)).onComplete {
+      ask(ifttNotificationSender, SendIFTTNotification("gymhunter", new IFTTNotification(notification))).onComplete {
         case Success(_) => context.system.eventStream.publish(SlotsAvailableNotificationSentEvent(notification))
         case Failure(ex) => log.error("Error occurred on sending IFTT notification", ex)
       }

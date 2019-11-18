@@ -28,7 +28,6 @@ import scala.util.Try
 class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_system) with Matchers with WordSpecLike with BeforeAndAfterAll {
   def this() = this(ActorSystem("GymHunter"))
 
-
   import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._
 
   override def beforeAll: Unit = {
@@ -51,7 +50,8 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
 
 
   private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(thsEventStore, gymsteerProxy, ifttNotificationSender), "GymHunterSupervisorIntegrationTest")
-  val postNotificationPath = "/trigger/gymhunter/with/key/test-key"
+  val postIFTTSlotsAvailableNotificationPath = "/trigger/gymhunter/with/key/test-key"
+  val postIFTTAutoBookingNotificationPath = "/trigger/gymHunterAutoBooking/with/key/test-key"
   val gymsteerLoginPath = "/api/login"
 
 
@@ -74,7 +74,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
             .withStatus(200)))
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo(postNotificationPath))
+        post(urlPathEqualTo(postIFTTSlotsAvailableNotificationPath))
           .willReturn(aResponse()
             .withHeader("Content-Type", "application/json")
             .withBody("OK")
@@ -88,7 +88,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
       gymHunterSupervisor.tell(GymHunterSupervisor.RunGymHunting(), probe.ref)
 
       //then
-      Try(awaitCond(hasIfttBeenNotified(training))).orElse(Try.apply(verifyIfttBeenNotified(training))).get
+      Try(awaitCond(hasIfttBeenNotified(training, postIFTTSlotsAvailableNotificationPath))).orElse(Try.apply(verifyIfttBeenNotified(training, postIFTTSlotsAvailableNotificationPath))).get
 
       thsEventStore.tell(GetTrainingHuntingSubscriptionAggregate(tth.id), probe.ref)
       val updateTthAggregate = probe.expectMsgType[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
@@ -97,6 +97,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
 
     """get all training hunting subscriptions
       |and auto book subscriptions with booking deadline if training has slots available
+      |and send IFTT notification about autoBooking performed
     """.stripMargin in {
 
       //given
@@ -127,6 +128,13 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
             .withHeader("Content-Type", "application/json")
             .withStatus(200)))
 
+      wireMockServer.stubFor(
+        post(urlPathEqualTo(postIFTTAutoBookingNotificationPath))
+          .willReturn(aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody("OK")
+            .withStatus(200)))
+
       val probe = TestProbe()
       thsCommandHandler.tell(CreateTrainingHuntingSubscriptionCommand(44L, 8L, OffsetDateTime.now().plusDays(1), Some(OffsetDateTime.now().plusHours(2))), probe.ref)
       val tth = probe.expectMsgType[TrainingHuntingSubscription]
@@ -140,20 +148,22 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
       thsEventStore.tell(GetTrainingHuntingSubscriptionAggregate(tth.id), probe.ref)
       val updateTthAggregate = probe.expectMsgType[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
       updateTthAggregate.toOption.get.autoBookingDateTime.get should be <= OffsetDateTime.now
+
+      Try(awaitCond(hasIfttBeenNotified(training, postIFTTAutoBookingNotificationPath))).orElse(Try.apply(verifyIfttBeenNotified(training, postIFTTAutoBookingNotificationPath))).get
     }
   }
 
-  private def hasIfttBeenNotified(training: Training): Boolean = {
-    !wireMockServer.findAll(ifttPost(training)).isEmpty
+  private def hasIfttBeenNotified(training: Training, path: String): Boolean = {
+    !wireMockServer.findAll(ifttPost(training, path)).isEmpty
   }
 
-  private def verifyIfttBeenNotified(training: Training): Unit = {
-    wireMockServer.verify(ifttPost(training))
+  private def verifyIfttBeenNotified(training: Training, path: String): Unit = {
+    wireMockServer.verify(ifttPost(training, path))
   }
 
-  private def ifttPost(training: Training): RequestPatternBuilder = {
+  private def ifttPost(training: Training, path: String): RequestPatternBuilder = {
     val body: String = ifttNotificationFormat.write(new IFTTNotification(Notification(training.start_date, 8L, TrainingHuntingSubscriptionId()))).toString()
-    postRequestedFor(urlEqualTo(postNotificationPath))
+    postRequestedFor(urlEqualTo(path))
       .withHeader("Content-Type", equalTo("application/json"))
       .withRequestBody(equalToJson(body))
   }

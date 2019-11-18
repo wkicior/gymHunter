@@ -8,6 +8,7 @@ import akka.testkit.{TestKit, TestProbe}
 import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender.SendNotification
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
+import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender.SendIFTTNotification
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
@@ -44,7 +45,7 @@ class SlotsAvailableNotificationSenderSpec(_system: ActorSystem) extends TestKit
       slotsAvailableNotificationSender.tell(SendNotification(notification), probe.ref)
 
       //then
-      ifttNotificationSenderProbe.expectMsg(new IFTTNotification(notification))
+      ifttNotificationSenderProbe.expectMsg(SendIFTTNotification("gymhunter", new IFTTNotification(notification)))
       ifttNotificationSenderProbe.reply(Status.Success)
 
       val event = probe.expectMsg(SlotsAvailableNotificationSentEvent(notification))
@@ -63,7 +64,7 @@ class SlotsAvailableNotificationSenderSpec(_system: ActorSystem) extends TestKit
       slotsAvailableNotificationSender.tell(SendNotification(notification), probe.ref)
 
       //then
-      ifttNotificationSenderProbe.expectMsg(new IFTTNotification(notification))
+      ifttNotificationSenderProbe.expectMsg(SendIFTTNotification("gymhunter", new IFTTNotification(notification)))
       ifttNotificationSenderProbe.reply(Status.Failure(new RuntimeException("test")))
 
       probe.expectNoMessage(1 second)

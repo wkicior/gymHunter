@@ -43,7 +43,7 @@ class VacantTrainingManager(thsProviderProps: Props, slotsAvailableNotificationS
 
   private def performAutoBookingOrSendNotification(training: Training, ths: TrainingHuntingSubscription) = {
     if (ths.canBeAutoBooked) {
-      trainingBooker ! TrainingBooker.BookTraining(ths)
+      trainingBooker ! TrainingBooker.BookTraining(ths, training)
     } else {
       slotsAvailableNotificationSender ! SendNotification(Notification(training.start_date, ths.clubId, ths.id))
     }

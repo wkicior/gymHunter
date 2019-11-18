@@ -2,6 +2,7 @@ package com.github.wkicior.gymhunter.app
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import com.github.wkicior.gymhunter.app.GymHunterSupervisor.RunGymHunting
+import com.github.wkicior.gymhunter.domain.notification.AutoBookingNotificationSender
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingAutoBookingPerformedEventHandler, TrainingSlotsAvailableNotificationSentEventHandler}
 import com.github.wkicior.gymhunter.domain.training.TrainingHunter
 import com.github.wkicior.gymhunter.domain.training.TrainingHunter.Hunt
@@ -19,10 +20,9 @@ class GymHunterSupervisor(trainingHuntingSubscriptionEventStore: ActorRef, gymst
 
   val trainingHunter: ActorRef = context.actorOf(
     TrainingHunter.props(trainingHuntingSubscriptionEventStore, gymsteerProxy, ifttNotificationSender), "trainingHunter")
-  val trainingSlotsAvailableNotificationHandler: ActorRef = context.actorOf(
-    TrainingSlotsAvailableNotificationSentEventHandler.props(trainingHuntingSubscriptionEventStore), "trainingSlotsAvailableNotificationHandler")
-  val trainingAutoBookingPerformedEventHandler: ActorRef = context.actorOf(
-    TrainingAutoBookingPerformedEventHandler.props(trainingHuntingSubscriptionEventStore), "trainingAutoBookingPerformedEventHandler")
+  context.actorOf(TrainingSlotsAvailableNotificationSentEventHandler.props(trainingHuntingSubscriptionEventStore), "trainingSlotsAvailableNotificationHandler")
+  context.actorOf(TrainingAutoBookingPerformedEventHandler.props(trainingHuntingSubscriptionEventStore), "trainingAutoBookingPerformedEventHandler")
+  context.actorOf(AutoBookingNotificationSender.props(ifttNotificationSender), "autoBookingNotificationSender")
 
   def receive: PartialFunction[Any, Unit] = {
     case RunGymHunting() => trainingHunter ! Hunt()

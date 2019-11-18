@@ -37,16 +37,17 @@ class TrainingBookerSpec(_system: ActorSystem) extends TestKit(_system) with Mat
       val probe = TestProbe()
       system.eventStream.subscribe(probe.ref, classOf[TrainingAutoBookingPerformedEvent])
       val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 1L, 1L, OffsetDateTime.now().plusDays(1))
+      val training = Training(1L, 1, Some(OffsetDateTime.now), OffsetDateTime.now)
 
       //when
-      trainingBooker.tell(TrainingBooker.BookTraining(ths), probe.ref)
+      trainingBooker.tell(TrainingBooker.BookTraining(ths, training), probe.ref)
 
       //then
       gymsteerProxyProbe.expectMsg(BookTraining(1L))
       gymsteerProxyProbe.reply(Success)
 
       probe.expectMsgPF() {
-        case ok@TrainingAutoBookingPerformedEvent(ths.externalSystemId, ths.id) => ok
+        case ok@TrainingAutoBookingPerformedEvent(ths.externalSystemId, ths.clubId, ths.id, training.start_date) => ok
       }
     }
   }

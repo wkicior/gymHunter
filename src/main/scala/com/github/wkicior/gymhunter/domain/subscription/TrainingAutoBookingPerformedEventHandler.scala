@@ -23,7 +23,7 @@ class TrainingAutoBookingPerformedEventHandler(trainingHuntingSubscriptionEventS
   override def preStart(): Unit = context.system.eventStream.subscribe(self, classOf[TrainingAutoBookingPerformedEvent])
 
   def receive: PartialFunction[Any, Unit] = {
-    case TrainingAutoBookingPerformedEvent(_, thsId) =>
+    case TrainingAutoBookingPerformedEvent(_, _, thsId, _) =>
       implicit val timeout: Timeout = Timeout(2 seconds)
       ask(trainingHuntingSubscriptionEventStore, GetTrainingHuntingSubscriptionAggregate(thsId))
         .mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]

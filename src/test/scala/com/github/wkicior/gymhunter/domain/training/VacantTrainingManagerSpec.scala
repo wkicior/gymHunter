@@ -100,7 +100,7 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
       thsProviderProbe.expectMsg(TrainingHuntingSubscriptionProvider.GetTrainingHuntingSubscriptionsByTrainingIdQuery(training.id))
       thsProviderProbe.reply(Set(ths))
 
-      trainingBookerProbe.expectMsg(TrainingBooker.BookTraining(ths))
+      trainingBookerProbe.expectMsg(TrainingBooker.BookTraining(ths, training))
       slotsAvailableNotificationSenderProbe.expectNoMessage(1 second)
     }
   }
