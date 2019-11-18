@@ -2,7 +2,7 @@ package com.github.wkicior.gymhunter.domain.training
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionAutoBookingEvent}
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionAutoBookingPerformedEvent}
 import akka.pattern.ask
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}

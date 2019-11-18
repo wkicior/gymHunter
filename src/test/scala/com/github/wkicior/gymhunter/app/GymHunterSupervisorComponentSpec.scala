@@ -122,7 +122,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       thsEventStoreProbe.reply(Right(ths))
 
       thsEventStoreProbe.expectMsgPF() {
-        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAutoBookingEvent(ths.id,  _, _))) => ok
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAutoBookingPerformedEvent(ths.id,  _, _))) => ok
       }
       ths.autoBookingDateTime.get should be <= OffsetDateTime.now
       ths.notificationOnSlotsAvailableSentTime shouldBe None

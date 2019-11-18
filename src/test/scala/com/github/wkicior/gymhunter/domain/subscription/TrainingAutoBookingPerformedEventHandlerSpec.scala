@@ -48,7 +48,7 @@ class TrainingAutoBookingPerformedEventHandlerSpec(_system: ActorSystem) extends
       thsEventStoreProbe.reply(Right(sampleThs))
 
       thsEventStoreProbe.expectMsgPF() {
-        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAutoBookingEvent(sampleThs.id, _, _))) => ok
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAutoBookingPerformedEvent(sampleThs.id, _, _))) => ok
       }
       thsEventStoreProbe.reply(Right(sampleThs.id))
 
