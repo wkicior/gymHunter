@@ -5,7 +5,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 import com.github.wkicior.gymhunter.app.{Settings, SettingsImpl}
-import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender.SendNotification
 import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender.SendIFTTNotification
 
 import scala.concurrent.Future
