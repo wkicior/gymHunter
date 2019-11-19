@@ -25,5 +25,5 @@ libraryDependencies ++= Seq(
 
 version in Docker := "latest"
 dockerExposedPorts := Seq(8080)
-dockerBaseImage := "java"
+dockerBaseImage := "openjdk:10"
 dockerExposedVolumes := Seq("/mnt/gymhunter-data")
