@@ -20,8 +20,11 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.8" % "test",
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.9",
   "com.enragedginger" %% "akka-quartz-scheduler" % "1.8.1-akka-2.5.x",
-  "com.github.tomakehurst" % "wiremock" % "2.25.1" % Test
+  "com.github.tomakehurst" % "wiremock" % "2.25.1" % Test,
+  "org.iq80.leveldb" % "leveldb" % "0.9" % Test
 )
+
+fork in Test := true
 
 version in Docker := "latest"
 dockerExposedPorts := Seq(8080)

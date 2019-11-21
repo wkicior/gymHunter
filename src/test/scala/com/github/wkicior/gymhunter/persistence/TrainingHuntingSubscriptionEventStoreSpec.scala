@@ -10,13 +10,13 @@ import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscrip
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence._
 import com.github.wkicior.gymhunter.domain.subscription._
 import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingHuntingSubscriptionEventStore
+import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
 
 class TrainingHuntingSubscriptionEventStoreSpec(_system: ActorSystem) extends TestKit(_system) with Matchers with WordSpecLike with BeforeAndAfterAll with Inside {
-
-  def this() = this(ActorSystem("GymHunter"))
+  def this() = this(ActorSystem("GymHunterLevelDB", config = ConfigFactory.load().getConfig("leveldbtest")))
 
   override def afterAll: Unit = {
     shutdown(system)
@@ -26,11 +26,11 @@ class TrainingHuntingSubscriptionEventStoreSpec(_system: ActorSystem) extends Te
   private val thsEventStore = system.actorOf(TrainingHuntingSubscriptionEventStore.props)
 
   "A TrainingHuntingSubscriptionEventStore Actor" should {
-    "return initially empty training hunting subscription" in {
+    "return all training hunting subscriptions" in {
 
       thsEventStore.tell(GetAllTrainingHuntingSubscriptions(), probe.ref)
       val response = probe.expectMsgType[Set[TrainingHuntingSubscription]]
-      response.size shouldEqual 0
+      response.size should be >= 0
     }
 
     "store TrainingToAdd on TrainingHuntingSubscriptionAdded event" in {
