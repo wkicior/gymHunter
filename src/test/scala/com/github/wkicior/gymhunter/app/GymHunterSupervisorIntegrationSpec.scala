@@ -17,7 +17,7 @@ import com.github.wkicior.gymhunter.domain.training.Training
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerProxy
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.auth.GymsteerLoginRequest
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.training.TrainingResponse
-import com.github.wkicior.gymhunter.infrastructure.iftt.{IFTTSlotsAvailableNotification, IFTTNotificationSender}
+import com.github.wkicior.gymhunter.infrastructure.iftt.{IFTTAutoBookingNotification, IFTTNotificationSender, IFTTSlotsAvailableNotification}
 import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingHuntingSubscriptionEventStore
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -50,8 +50,8 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
 
 
   private val gymHunterSupervisor = system.actorOf(GymHunterSupervisor.props(thsEventStore, gymsteerProxy, ifttNotificationSender), "GymHunterSupervisorIntegrationTest")
-  val postIFTTSlotsAvailableNotificationPath = "/trigger/gymhunter/with/key/test-key"
-  val postIFTTAutoBookingNotificationPath = "/trigger/gymHunterAutoBooking/with/key/test-key"
+  val postIFTTSlotsAvailableNotificationPath = s"/trigger/${IFTTSlotsAvailableNotification.name}/with/key/test-key"
+  val postIFTTAutoBookingNotificationPath = s"/trigger/${IFTTAutoBookingNotification.name}/with/key/test-key"
   val gymsteerLoginPath = "/api/login"
 
 

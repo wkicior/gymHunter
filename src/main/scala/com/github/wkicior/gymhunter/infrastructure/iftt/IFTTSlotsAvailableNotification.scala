@@ -4,12 +4,8 @@ import java.time.format.{DateTimeFormatter, FormatStyle}
 
 import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotification
 
-object IFTTNotificationName {
-  val autoBookingNotificationName = "gymHunterAutoBooking"
-}
-
 object IFTTSlotsAvailableNotification {
-  val name = "gymhunter"
+  val name = "gymHunterSlotsAvailable"
 }
 
 case class IFTTSlotsAvailableNotification(value1: String, value2: String) {
