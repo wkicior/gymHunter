@@ -3,7 +3,7 @@ package com.github.wkicior.gymhunter.domain.training
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import com.github.wkicior.gymhunter.domain.notification.{Notification, SlotsAvailableNotificationSender}
+import com.github.wkicior.gymhunter.domain.notification.{SlotsAvailableNotification, SlotsAvailableNotificationSender}
 import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender.SendNotification
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionProvider.GetTrainingHuntingSubscriptionsByTrainingIdQuery
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionProvider}
@@ -45,7 +45,7 @@ class VacantTrainingManager(thsProviderProps: Props, slotsAvailableNotificationS
     if (ths.canBeAutoBooked) {
       trainingBooker ! TrainingBooker.BookTraining(ths, training)
     } else {
-      slotsAvailableNotificationSender ! SendNotification(Notification(training.start_date, ths.clubId, ths.id))
+      slotsAvailableNotificationSender ! SendNotification(SlotsAvailableNotification(training.start_date, ths.clubId, ths.id))
     }
   }
 

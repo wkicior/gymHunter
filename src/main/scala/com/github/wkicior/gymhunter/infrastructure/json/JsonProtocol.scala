@@ -9,8 +9,9 @@ import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscrip
 import com.github.wkicior.gymhunter.domain.training.Training
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.auth.GymsteerLoginRequest
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.training.TrainingResponse
-import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
+import com.github.wkicior.gymhunter.infrastructure.iftt.{IFTTAutoBookingNotification, IFTTSlotsAvailableNotification}
 import spray.json.{DefaultJsonProtocol, JsString, JsValue, NullOptions, RootJsonFormat, deserializationError}
+
 
 object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport with NullOptions {
 
@@ -36,6 +37,7 @@ object JsonProtocol extends DefaultJsonProtocol with SprayJsonSupport with NullO
   implicit val trainingResponseFormat: RootJsonFormat[TrainingResponse] = jsonFormat1(TrainingResponse)
   implicit val trainingHuntingSubscriptionFormat: RootJsonFormat[TrainingHuntingSubscription] = jsonFormat7(TrainingHuntingSubscription)
   implicit val trainingHuntingSubscriptionRequestFormat: RootJsonFormat[CreateTrainingHuntingSubscriptionCommand] = jsonFormat4(CreateTrainingHuntingSubscriptionCommand)
-  implicit val ifttNotificationFormat: RootJsonFormat[IFTTNotification] = jsonFormat2(IFTTNotification)
+  implicit val ifttSlotsAvailableNotificationFormat: RootJsonFormat[IFTTSlotsAvailableNotification] = jsonFormat2(IFTTSlotsAvailableNotification.apply)
+  implicit val ifttAutoBookingNotificationFormat: RootJsonFormat[IFTTAutoBookingNotification] = jsonFormat2(IFTTAutoBookingNotification.apply)
   implicit val gymsteerLoginRequestFormat: RootJsonFormat[GymsteerLoginRequest] = jsonFormat2(GymsteerLoginRequest)
 }

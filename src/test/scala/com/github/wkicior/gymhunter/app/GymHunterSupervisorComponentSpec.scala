@@ -4,17 +4,13 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props, Status}
 import akka.testkit.{TestKit, TestProbe}
-
-import scala.concurrent.duration._
-import com.github.wkicior.gymhunter.domain.notification.Notification
-import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscriptionAddedEvent, TrainingHuntingSubscriptionNotificationSentEvent}
+import com.github.wkicior.gymhunter.domain.notification.{AutoBookingNotification, SlotsAvailableNotification}
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence.{GetAllTrainingHuntingSubscriptions, GetTrainingHuntingSubscriptionAggregate, StoreEvents}
-import com.github.wkicior.gymhunter.domain.subscription._
+import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscriptionAddedEvent, TrainingHuntingSubscriptionNotificationSentEvent, _}
 import com.github.wkicior.gymhunter.domain.training.{BookTraining, GetTraining, Training}
-import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
-import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender.SendIFTTNotification
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
+import scala.concurrent.duration._
 import scala.language.postfixOps
 
 
@@ -79,7 +75,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions] //by VacantTrainingManager
       thsEventStoreProbe.reply(Set(ths()))
 
-      ifttNotificationSenderProbe.expectMsg(SendIFTTNotification("gymhunter", new IFTTNotification(Notification(training.start_date, ths.clubId, ths.id))))
+      ifttNotificationSenderProbe.expectMsg(SlotsAvailableNotification(training.start_date, ths.clubId, ths.id))
       ifttNotificationSenderProbe.reply(Status.Success)
 
       thsEventStoreProbe.expectMsg(GetTrainingHuntingSubscriptionAggregate(ths.id)) //by TrainingSlotsAvailableNotificationSentEventHandler
@@ -127,7 +123,7 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
       ths.autoBookingDateTime.get should be <= OffsetDateTime.now
       ths.notificationOnSlotsAvailableSentTime shouldBe None
 
-      ifttNotificationSenderProbe.expectMsg(SendIFTTNotification("gymHunterAutoBooking", new IFTTNotification(Notification(training.start_date, ths.clubId, ths.id))))
+      ifttNotificationSenderProbe.expectMsg(AutoBookingNotification(training.start_date, ths.clubId, ths.id))
     }
 
     """start new hunting

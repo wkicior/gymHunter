@@ -6,8 +6,7 @@ import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId
 import com.github.wkicior.gymhunter.domain.training.TrainingAutoBookingPerformedEvent
-import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
-import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender.SendIFTTNotification
+import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTSlotsAvailableNotification
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
 import scala.language.postfixOps
@@ -38,13 +37,13 @@ class AutoBookingNotificationSenderSpec(_system: ActorSystem) extends TestKit(_s
       val probe = TestProbe()
       val id = TrainingHuntingSubscriptionId()
       val trainingTime = OffsetDateTime.now
-      val notification = Notification(trainingTime, 1L, id)
+      val notification = AutoBookingNotification(trainingTime, 1L, id)
       system.eventStream.subscribe(probe.ref, classOf[SlotsAvailableNotificationSentEvent])
       //when
       system.eventStream.publish(TrainingAutoBookingPerformedEvent(1L, 1L, id, trainingTime))
 
       //then
-      ifttNotificationSenderProbe.expectMsg(SendIFTTNotification("gymHunterAutoBooking", new IFTTNotification(notification)))
+      ifttNotificationSenderProbe.expectMsg(notification)
 
     }
 

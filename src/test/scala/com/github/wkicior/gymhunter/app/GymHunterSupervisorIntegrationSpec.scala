@@ -8,7 +8,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
-import com.github.wkicior.gymhunter.domain.notification.Notification
+import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotification
 import com.github.wkicior.gymhunter.domain.subscription.OptionalTrainingHuntingSubscription.OptionalTrainingHuntingSubscription
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.CreateTrainingHuntingSubscriptionCommand
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence.GetTrainingHuntingSubscriptionAggregate
@@ -17,7 +17,7 @@ import com.github.wkicior.gymhunter.domain.training.Training
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerProxy
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.auth.GymsteerLoginRequest
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.training.TrainingResponse
-import com.github.wkicior.gymhunter.infrastructure.iftt.{IFTTNotification, IFTTNotificationSender}
+import com.github.wkicior.gymhunter.infrastructure.iftt.{IFTTSlotsAvailableNotification, IFTTNotificationSender}
 import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingHuntingSubscriptionEventStore
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -162,7 +162,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
   }
 
   private def ifttPost(training: Training, path: String): RequestPatternBuilder = {
-    val body: String = ifttNotificationFormat.write(new IFTTNotification(Notification(training.start_date, 8L, TrainingHuntingSubscriptionId()))).toString()
+    val body: String = ifttSlotsAvailableNotificationFormat.write(new IFTTSlotsAvailableNotification(SlotsAvailableNotification(training.start_date, 8L, TrainingHuntingSubscriptionId()))).toString()
     postRequestedFor(urlEqualTo(path))
       .withHeader("Content-Type", equalTo("application/json"))
       .withRequestBody(equalToJson(body))

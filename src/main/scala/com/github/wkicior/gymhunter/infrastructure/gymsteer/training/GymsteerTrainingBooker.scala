@@ -4,7 +4,7 @@ import akka.actor.Status.Success
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{CustomHeader, RawHeader}
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.ActorMaterializer
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.GymsteerException
 import com.github.wkicior.gymhunter.infrastructure.gymsteer.training.GymsteerTrainingBooker.BookTraining

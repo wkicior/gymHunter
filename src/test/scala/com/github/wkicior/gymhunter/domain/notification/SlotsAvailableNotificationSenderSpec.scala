@@ -7,8 +7,6 @@ import akka.actor.{Actor, ActorSystem, Props, Status}
 import akka.testkit.{TestKit, TestProbe}
 import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender.SendNotification
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionId
-import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
-import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender.SendIFTTNotification
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
@@ -39,13 +37,13 @@ class SlotsAvailableNotificationSenderSpec(_system: ActorSystem) extends TestKit
     """.stripMargin in {
       //given
       val probe = TestProbe()
-      val notification = Notification(OffsetDateTime.now, 1L, TrainingHuntingSubscriptionId())
+      val notification = SlotsAvailableNotification(OffsetDateTime.now, 1L, TrainingHuntingSubscriptionId())
       system.eventStream.subscribe(probe.ref, classOf[SlotsAvailableNotificationSentEvent])
       //when
       slotsAvailableNotificationSender.tell(SendNotification(notification), probe.ref)
 
       //then
-      ifttNotificationSenderProbe.expectMsg(SendIFTTNotification("gymhunter", new IFTTNotification(notification)))
+      ifttNotificationSenderProbe.expectMsg(notification)
       ifttNotificationSenderProbe.reply(Status.Success)
 
       val event = probe.expectMsg(SlotsAvailableNotificationSentEvent(notification))
@@ -58,13 +56,13 @@ class SlotsAvailableNotificationSenderSpec(_system: ActorSystem) extends TestKit
     """.stripMargin in {
       //given
       val probe = TestProbe()
-      val notification = Notification(OffsetDateTime.now, 2L, TrainingHuntingSubscriptionId())
+      val notification = SlotsAvailableNotification(OffsetDateTime.now, 2L, TrainingHuntingSubscriptionId())
       system.eventStream.subscribe(probe.ref, classOf[SlotsAvailableNotificationSentEvent])
       //when
       slotsAvailableNotificationSender.tell(SendNotification(notification), probe.ref)
 
       //then
-      ifttNotificationSenderProbe.expectMsg(SendIFTTNotification("gymhunter", new IFTTNotification(notification)))
+      ifttNotificationSenderProbe.expectMsg(notification)
       ifttNotificationSenderProbe.reply(Status.Failure(new RuntimeException("test")))
 
       probe.expectNoMessage(1 second)

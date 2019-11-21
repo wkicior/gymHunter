@@ -4,7 +4,7 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.notification.Notification
+import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotification
 import com.github.wkicior.gymhunter.domain.notification.SlotsAvailableNotificationSender.SendNotification
 import com.github.wkicior.gymhunter.domain.subscription.{TrainingHuntingSubscription, TrainingHuntingSubscriptionId, TrainingHuntingSubscriptionProvider}
 import com.github.wkicior.gymhunter.domain.training.VacantTrainingManager.ProcessVacantTraining
@@ -60,7 +60,7 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
       thsProviderProbe.expectMsg(TrainingHuntingSubscriptionProvider.GetTrainingHuntingSubscriptionsByTrainingIdQuery(training.id))
       thsProviderProbe.reply(Set(ths))
 
-      slotsAvailableNotificationSenderProbe.expectMsg(SendNotification(Notification(training.start_date, ths.clubId, ths.id)))
+      slotsAvailableNotificationSenderProbe.expectMsg(SendNotification(SlotsAvailableNotification(training.start_date, ths.clubId, ths.id)))
       trainingBookerProbe.expectNoMessage(1 second)
     }
 
@@ -80,7 +80,7 @@ class VacantTrainingManagerSpec(_system: ActorSystem) extends TestKit(_system) w
       thsProviderProbe.expectMsg(TrainingHuntingSubscriptionProvider.GetTrainingHuntingSubscriptionsByTrainingIdQuery(training.id))
       thsProviderProbe.reply(Set(ths))
 
-      slotsAvailableNotificationSenderProbe.expectMsg(SendNotification(Notification(training.start_date, ths.clubId, ths.id)))
+      slotsAvailableNotificationSenderProbe.expectMsg(SendNotification(SlotsAvailableNotification(training.start_date, ths.clubId, ths.id)))
       trainingBookerProbe.expectNoMessage(1 second)
     }
 

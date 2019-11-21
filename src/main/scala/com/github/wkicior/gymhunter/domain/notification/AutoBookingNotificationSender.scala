@@ -1,11 +1,9 @@
 package com.github.wkicior.gymhunter.domain.notification
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.util.Timeout
 import akka.pattern.ask
+import akka.util.Timeout
 import com.github.wkicior.gymhunter.domain.training.TrainingAutoBookingPerformedEvent
-import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotification
-import com.github.wkicior.gymhunter.infrastructure.iftt.IFTTNotificationSender.SendIFTTNotification
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
@@ -13,8 +11,8 @@ import scala.language.postfixOps
 
 
 object AutoBookingNotificationSender {
-  def props(ifttNotifiationSender: ActorRef): Props = Props(new AutoBookingNotificationSender(ifttNotifiationSender))
-  final case class SendNotification(notification: Notification)
+  def props(notificationSender: ActorRef): Props = Props(new AutoBookingNotificationSender(notificationSender))
+  final case class SendNotification(notification: SlotsAvailableNotification)
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 }
 
@@ -27,7 +25,7 @@ class AutoBookingNotificationSender(ifttNotificationSender: ActorRef) extends Ac
     case TrainingAutoBookingPerformedEvent(_, clubId, thsId, trainingDateTime) =>
       log.info(s"will send IFTT auto booking notification for $thsId")
       implicit val timeout: Timeout = Timeout(5 seconds)
-      ifttNotificationSender ? SendIFTTNotification("gymHunterAutoBooking", new IFTTNotification(Notification(trainingDateTime, clubId, thsId)))
+      ifttNotificationSender ? AutoBookingNotification(trainingDateTime, clubId, thsId)
     case x =>
       log.error(s"Unrecognized message: $x")
   }

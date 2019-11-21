@@ -4,7 +4,7 @@ import java.time.OffsetDateTime
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
-import com.github.wkicior.gymhunter.domain.notification.{Notification, SlotsAvailableNotificationSentEvent}
+import com.github.wkicior.gymhunter.domain.notification.{SlotsAvailableNotification, SlotsAvailableNotificationSentEvent}
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionPersistence.{GetTrainingHuntingSubscriptionAggregate, StoreEvents}
 import org.scalatest.{BeforeAndAfterAll, Inside, Matchers, WordSpecLike}
 
@@ -37,7 +37,7 @@ class TrainingSlotsAvailableNotificationSentEventHandlerSpec(_system: ActorSyste
       //given
       val id = TrainingHuntingSubscriptionId()
       val sampleThs = TrainingHuntingSubscriptionAggregate(id, 1L, 2L)
-      val notification = Notification(OffsetDateTime.now, 8L, id)
+      val notification = SlotsAvailableNotification(OffsetDateTime.now, 8L, id)
 
       //when
       thsCommandHandler ! SlotsAvailableNotificationSentEvent(notification)
