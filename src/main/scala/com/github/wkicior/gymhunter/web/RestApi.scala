@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Route
 
 import scala.language.postfixOps
 
-class RestApi(actorSystem: ActorSystem, implicit val trainingHuntingSubscriptionEventStore: ActorRef) extends TrainingHuntingSubscriptionController {
+class RestApi(actorSystem: ActorSystem, implicit val trainingHuntingSubscriptionEventStore: ActorRef) extends TrainingHuntingSubscriptionRestAPI {
   implicit def system: ActorSystem = actorSystem
   lazy val routes: Route = pathPrefix("api") {
     trainingHuntingSubscriptionRoutes

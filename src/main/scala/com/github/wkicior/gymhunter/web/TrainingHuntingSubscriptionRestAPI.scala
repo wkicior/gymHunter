@@ -20,7 +20,7 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
 
-trait TrainingHuntingSubscriptionController {
+trait TrainingHuntingSubscriptionRestAPI {
   implicit def system: ActorSystem
   implicit def trainingHuntingSubscriptionEventStore: ActorRef
   import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._

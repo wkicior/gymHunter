@@ -13,7 +13,7 @@ import com.github.wkicior.gymhunter.infrastructure.persistence.TrainingHuntingSu
 import org.scalatest.{Inside, Matchers, WordSpec}
 
 
-class TrainingHuntingSubscriptionControllerSpec extends WordSpec with Matchers with ScalatestRouteTest with Inside {
+class TrainingHuntingSubscriptionRestAPISpec extends WordSpec with Matchers with ScalatestRouteTest with Inside {
   "TrainingHuntingSubscriptionController" should {
     import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._
 
