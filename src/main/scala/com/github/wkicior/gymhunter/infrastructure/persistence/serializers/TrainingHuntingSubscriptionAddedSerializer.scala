@@ -37,7 +37,7 @@ class TrainingHuntingSubscriptionAddedSerializer extends SerializerWithStringMan
       .setExternalSystemId(event.externalSystemId)
       .setClubId(event.clubId)
       .setHuntingDeadline(event.huntingDeadline.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-      .setAutoBookingDeadline(event.autoBookingDeadline.map(abd => abd.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)).orNull)
+      .setAutoBookingDeadline(event.autoBookingDeadline.map(abd => abd.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)).getOrElse(""))
       .build()
   }
 
