@@ -2,7 +2,7 @@ package com.github.wkicior.gymhunter.web
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{AuthorizationFailedRejection, RejectionHandler, Route}
 
 import scala.language.postfixOps
 

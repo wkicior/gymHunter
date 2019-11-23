@@ -4,8 +4,7 @@ import java.time.{OffsetDateTime, ZoneOffset}
 import java.util.UUID
 
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.headers.BasicHttpCredentials
-import akka.http.scaladsl.server.AuthenticationFailedRejection
+import akka.http.scaladsl.model.headers.{BasicHttpCredentials, HttpChallenges}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscription
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.CreateTrainingHuntingSubscriptionCommand
@@ -21,16 +20,21 @@ class TrainingHuntingSubscriptionRestAPISpec extends WordSpec with Matchers with
     val routes = new RestApi(system, thsEventStore).routes
     val validCredentials = BasicHttpCredentials("John", "knight-who-say-ni")
 
-
     "require authentication" in {
       Get("/api/training-hunting-subscriptions") ~> routes  ~> check {
-        rejection shouldBe a [AuthenticationFailedRejection]
+        status shouldBe StatusCodes.Unauthorized
+      }
+    }
+
+    "does not require authentication OPTIONS" in {
+      Options("/api/training-hunting-subscriptions") ~> routes  ~> check {
+        status shouldBe StatusCodes.OK
       }
     }
 
     "reject with invalid authentication" in {
-      Get("/api/training-hunting-subscriptions") ~> addCredentials(BasicHttpCredentials("John", "invalidpass")) ~> routes  ~> check {
-        rejection shouldBe a [AuthenticationFailedRejection]
+      Get("/api/training-hunting-subscriptions") ~> addCredentials(BasicHttpCredentials("John", "invalidpass")) ~> routes ~> check {
+        status shouldBe StatusCodes.Unauthorized
       }
     }
 
