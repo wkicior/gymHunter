@@ -3,8 +3,11 @@ package com.github.wkicior.gymhunter.web
 import java.time.{OffsetDateTime, ZoneOffset}
 import java.util.UUID
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.headers.{BasicHttpCredentials, HttpChallenges}
+import akka.http.scaladsl.model.headers.BasicHttpCredentials
+import akka.http.scaladsl.model.{HttpMethods, StatusCodes}
+import akka.http.scaladsl.server.UnsupportedRequestContentTypeRejection
+import akka.http.scaladsl.server.MethodRejection
+
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscription
 import com.github.wkicior.gymhunter.domain.subscription.TrainingHuntingSubscriptionCommandHandler.CreateTrainingHuntingSubscriptionCommand
@@ -13,7 +16,7 @@ import org.scalatest.{Inside, Matchers, WordSpec}
 
 
 class TrainingHuntingSubscriptionRestAPISpec extends WordSpec with Matchers with ScalatestRouteTest with Inside {
-  "TrainingHuntingSubscriptionController" should {
+  "TrainingHuntingSubscriptionRestAPI" should {
     import com.github.wkicior.gymhunter.infrastructure.json.JsonProtocol._
 
     val thsEventStore = system.actorOf(TrainingHuntingSubscriptionEventStore.props, "TrainingHuntingSubscriptionEventStore")
@@ -26,7 +29,7 @@ class TrainingHuntingSubscriptionRestAPISpec extends WordSpec with Matchers with
       }
     }
 
-    "does not require authentication OPTIONS" in {
+    "not require authentication OPTIONS" in {
       Options("/api/training-hunting-subscriptions") ~> routes  ~> check {
         status shouldBe StatusCodes.OK
       }
@@ -80,6 +83,18 @@ class TrainingHuntingSubscriptionRestAPISpec extends WordSpec with Matchers with
         Get("/api/training-hunting-subscriptions") ~> addCredentials(validCredentials) ~> routes ~> check {
           responseAs[Seq[TrainingHuntingSubscription]] should contain (ths)
         }
+      }
+    }
+
+    "not save new training with malformed body and return 400 error" in {
+      Post("/api/training-hunting-subscriptions", "some dummy body") ~> addCredentials(validCredentials) ~> routes ~> check {
+        rejection shouldBe a [UnsupportedRequestContentTypeRejection]
+      }
+    }
+
+    "return 405 on not allowed method" in {
+      Put("/api/training-hunting-subscriptions", "some dummy body") ~> addCredentials(validCredentials) ~> routes ~> check {
+        rejections should contain allElementsOf Seq(MethodRejection(HttpMethods.OPTIONS), MethodRejection(HttpMethods.GET), MethodRejection(HttpMethods.POST))
       }
     }
 
