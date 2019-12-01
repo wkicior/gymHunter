@@ -34,5 +34,13 @@ object GymHunterApp extends App {
   val api = new RestApi(system, trainingHuntingSubscriptionEventStore).routes
   Http().bindAndHandle(api, "0.0.0.0", 8080)
   log.info("Starting the HTTP server at 8080")
+  val httpsContext = HttpsContext(settings)
+  if (httpsContext.isAvailable) {
+    Http().bindAndHandle(api, "0.0.0.0", 8443, connectionContext = httpsContext())
+    log.info("Starting the HTTPS server at 8443")
+  } else {
+    log.warning("HTTPS context is unavailable. Please provide correct values for gymhunter.keystore.password and gymhunter.keystore.path parameters")
+  }
+
   Await.result(system.whenTerminated, Duration.Inf)
 }

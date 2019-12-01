@@ -10,6 +10,8 @@ class SettingsImpl(config: Config) extends Extension {
   val basicAuthPassword: String = config.getString("gymhunter.auth.password")
   val gymsteerUsername: String = config.getString("gymhunter.gymsteer.username")
   val gymsteerPassword: String = config.getString("gymhunter.gymsteer.password")
+  val gymhunterKeystorePath: String = config.getString("gymhunter.keystore.path")
+  val gymhunterKeystorePassword: String = config.getString("gymhunter.keystore.password")
 }
 object Settings extends ExtensionId[SettingsImpl] with ExtensionIdProvider {
 

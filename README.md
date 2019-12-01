@@ -26,6 +26,13 @@ GYMHUNTER_STORE_DIR - directory for journal and snapshots storage
 GYMSTEER_USERNAME - username in Gymsteer platform
 
 GYMSTEER_PASSWORD - password in Gymsteer platform
+
+GYMHUNTER_KEYSTORE_PASSWORD - password for HTTPS support. Requires valid ```src/main/resources/keystore/gymhunter.com.p12``` file. See HTTPS section on how to generate one. Empty value and missing file will not start HTTPS server.
+
+## HTTPS support (optional)
+Provide PKCS12 ```src/main/resources/keystore/gymhunter.com.p12``` file with the key password stored in GYMHUNTER_KEYSTORE_PASSWORD variable in order to start HTTPS server on 8443 port.
+Empty password and missing file will not start HTTPS.
+Follow instruction on https://lightbend.github.io/ssl-config/CertificateGeneration.html which describes how to generate such file.  
  
 ## run locally
 ```$ ./sbt run```

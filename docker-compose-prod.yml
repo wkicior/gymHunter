@@ -12,6 +12,7 @@ services:
     image: gymhunter:latest
     ports:
       - "80:8080"
+      - "443:8443"
     networks:
       - service-network
     volumes:
@@ -23,5 +24,6 @@ services:
       - GYMHUNTER_SCHEDULER=20 */5 * ? * *
       - GYMSTEER_USERNAME
       - GYMSTEER_PASSWORD
+      - GYMHUNTER_KEYSTORE_PASSWORD
       - TZ=Europe/Warsaw
 

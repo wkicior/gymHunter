@@ -30,5 +30,6 @@ build
 target
 *iml
 
+src/main/resources/keystore/gymhunter.com.p12
 journal
 snapshots
