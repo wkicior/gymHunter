@@ -81,7 +81,7 @@ class GymHunterSupervisorIntegrationSpec(_system: ActorSystem) extends TestKit(_
             .withStatus(200)))
 
       val probe = TestProbe()
-      thsCommandHandler.tell(CreateTrainingHuntingSubscriptionCommand(44L, 8L, OffsetDateTime.now().plusDays(1)), probe.ref)
+      thsCommandHandler.tell(CreateTrainingHuntingSubscriptionCommand(44L, 8L, OffsetDateTime.now().plusDays(1), Some(OffsetDateTime.now().minusMinutes(1))), probe.ref)
       val tth = probe.expectMsgType[TrainingHuntingSubscription]
 
       //when

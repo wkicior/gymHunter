@@ -20,7 +20,7 @@ case class TrainingHuntingSubscription(id: TrainingHuntingSubscriptionId,
                                        autoBookingDateTime: Option[OffsetDateTime] = None,
                                        huntingStartTime: Option[OffsetDateTime] = None) {
   def hasNotificationBeenSent: Boolean = this.notificationOnSlotsAvailableSentDateTime.isDefined
-  def isContemporary: Boolean = this.huntingDeadline.isAfter(OffsetDateTime.now)
+  def isContemporary: Boolean = this.huntingDeadline.isAfter(OffsetDateTime.now) && this.huntingStartTime.forall(s => s.isBefore(OffsetDateTime.now))
   def isActive: Boolean = !hasNotificationBeenSent && isContemporary && autoBookingDateTime.isEmpty
   def canBeAutoBooked: Boolean = isContemporary && autoBookingDeadline.exists(d => d.isAfter(OffsetDateTime.now)) && autoBookingDateTime.isEmpty
 }

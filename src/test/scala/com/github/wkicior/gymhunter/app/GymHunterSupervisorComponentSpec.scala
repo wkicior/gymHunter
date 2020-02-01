@@ -88,6 +88,42 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
     }
 
     """start new hunting
+      |by fetching all training hunting subscriptions with huntingStartTime
+      |and load training data for them
+      |and notify users if slots are available on the training
+    """.stripMargin in {
+      //given
+      val training = Training(42L, 1, Some(OffsetDateTime.now().minusDays(1)), OffsetDateTime.now.plusDays(1))
+      val thsAddedEvent = TrainingHuntingSubscriptionAddedEvent(TrainingHuntingSubscriptionId(), 42L, 9L, OffsetDateTime.now.plusDays(1), Some(OffsetDateTime.now.minusDays(1)),  Some(OffsetDateTime.now().minusMinutes(1)))
+      val ths = new TrainingHuntingSubscriptionAggregate(thsAddedEvent) //creating from event in order to have clean events list
+      val probe = TestProbe()
+
+      //when
+      gymHunterSupervisor.tell(GymHunterSupervisor.RunGymHunting(), probe.ref)
+
+      //then
+      thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions] // by TrainingHunter
+      thsEventStoreProbe.reply(Set(ths()))
+
+      gymsteerProxyProbe.expectMsg(GetTraining(42)) // by TrainingHunter
+      gymsteerProxyProbe.reply(training)
+
+      thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions] //by VacantTrainingManager
+      thsEventStoreProbe.reply(Set(ths()))
+
+      ifttNotificationSenderProbe.expectMsg(SlotsAvailableNotification(training.start_date, ths.clubId, ths.id))
+      ifttNotificationSenderProbe.reply(Status.Success)
+
+      thsEventStoreProbe.expectMsg(GetTrainingHuntingSubscriptionAggregate(ths.id)) //by TrainingSlotsAvailableNotificationSentEventHandler
+      thsEventStoreProbe.reply(Right(ths))
+
+      thsEventStoreProbe.expectMsgPF() {
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionNotificationSentEvent(ths.id,  _, _))) => ok
+      }
+      ths.notificationOnSlotsAvailableSentTime.get should be <= OffsetDateTime.now
+    }
+
+    """start new hunting
       |by fetching all training hunting subscriptions with autoBookingDeadline
       |and load training data for them
       |and perform auto booking if slots are available on the training
@@ -195,6 +231,25 @@ class GymHunterSupervisorComponentSpec(_system: ActorSystem) extends TestKit(_sy
     """.stripMargin in {
       //given
       val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 44L, 6L, OffsetDateTime.now.minusDays(1), None)
+      val probe = TestProbe()
+
+      //when
+      gymHunterSupervisor.tell(GymHunterSupervisor.RunGymHunting(), probe.ref)
+
+      //then
+      thsEventStoreProbe.expectMsgType[GetAllTrainingHuntingSubscriptions]
+      thsEventStoreProbe.reply(Set(ths))
+
+      gymsteerProxyProbe.expectNoMessage(1 second)
+      ifttNotificationSenderProbe.expectNoMessage(1 second)
+    }
+
+    """start new hunting
+      |by fetching all trainings trainings hunting subscriptions
+      |and ignore training hunting subscriptions for huntingStartTime has not passed yet
+    """.stripMargin in {
+      //given
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 44L, 6L, OffsetDateTime.now.plusDays(1), None, None, None, Some(OffsetDateTime.now.plusMinutes(1)))
       val probe = TestProbe()
 
       //when
