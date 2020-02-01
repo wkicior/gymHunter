@@ -15,7 +15,7 @@ class IFTTSlotsAvailableNotificationSpec extends WordSpec with Matchers {
       val date = OffsetDateTime.of(2019, 10, 10, 7, 15, 0, 0, ZoneOffset.of("+02:00"))
       val notification = SlotsAvailableNotification(date, 8L, TrainingHuntingSubscriptionId())
       val ifttNotification = new IFTTSlotsAvailableNotification(notification)
-      ifttNotification shouldBe IFTTSlotsAvailableNotification("10.10.2019, 07:15:00", "8")
+      ifttNotification shouldBe IFTTSlotsAvailableNotification("10 paź 2019, 07:15:00", "8")
     }
   }
 }
