@@ -20,7 +20,7 @@ object TrainingHuntingSubscriptionCommandHandler {
                                                       clubId: Long,
                                                       huntingDeadline: OffsetDateTime,
                                                       autoBookingDeadline: Option[OffsetDateTime] = None,
-                                                      startOfHuntDatetime: Option[OffsetDateTime] = None)
+                                                      huntingStartTime: Option[OffsetDateTime] = None)
 
   case class DeleteTrainingHuntingSubscriptionCommand(id: TrainingHuntingSubscriptionId)
 }
@@ -31,7 +31,7 @@ class TrainingHuntingSubscriptionCommandHandler(trainingHuntingSubscriptionEvent
   def receive: PartialFunction[Any, Unit] = {
     case tr: CreateTrainingHuntingSubscriptionCommand =>
       implicit val timeout: Timeout = Timeout(2 seconds)
-      val trainingHuntingSubscription = new TrainingHuntingSubscriptionAggregate(TrainingHuntingSubscriptionId(), tr.externalSystemId, tr.clubId, tr.huntingDeadline, tr.autoBookingDeadline, tr.startOfHuntDatetime)
+      val trainingHuntingSubscription = new TrainingHuntingSubscriptionAggregate(TrainingHuntingSubscriptionId(), tr.externalSystemId, tr.clubId, tr.huntingDeadline, tr.autoBookingDeadline, tr.huntingStartTime)
       ask(trainingHuntingSubscriptionEventStore, StoreEvents(trainingHuntingSubscription.id, trainingHuntingSubscription.pendingEventsList()))
         .mapTo[OptionalTrainingHuntingSubscription[TrainingHuntingSubscriptionAggregate]]
         .map(ttha => ttha.toOption.get)

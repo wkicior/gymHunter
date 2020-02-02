@@ -70,13 +70,13 @@ class TrainingHuntingSubscriptionCommandHandlerSpec(_system: ActorSystem) extend
     "create new TrainingHuntingSubscription with hunting start time and store it to the event store" in {
       //given
       val createThsCommand = CreateTrainingHuntingSubscriptionCommand(1L, 2L, OffsetDateTime.now, None, Some(OffsetDateTime.now))
-      val sampleThs = new TrainingHuntingSubscriptionAggregate(TrainingHuntingSubscriptionId(), 1L, 2L, createThsCommand.huntingDeadline, createThsCommand.autoBookingDeadline, createThsCommand.startOfHuntDatetime)
+      val sampleThs = new TrainingHuntingSubscriptionAggregate(TrainingHuntingSubscriptionId(), 1L, 2L, createThsCommand.huntingDeadline, createThsCommand.autoBookingDeadline, createThsCommand.huntingStartTime)
       //when
       thsCommandHandler.tell(createThsCommand, probe.ref)
 
       //then
       thsEventStoreProbe.expectMsgPF() {
-        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAddedEvent(_, 1L, 2L, createThsCommand.`huntingDeadline`, None, createThsCommand.startOfHuntDatetime, _, _))) => ok
+        case ok@StoreEvents(_, List(TrainingHuntingSubscriptionAddedEvent(_, 1L, 2L, createThsCommand.`huntingDeadline`, None, createThsCommand.`huntingStartTime`, _, _))) => ok
       }
       thsEventStoreProbe.reply(Right(sampleThs))
 

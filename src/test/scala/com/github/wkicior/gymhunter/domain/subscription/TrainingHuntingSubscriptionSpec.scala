@@ -29,6 +29,16 @@ class TrainingHuntingSubscriptionSpec extends WordSpec with Matchers {
       ths.isActive shouldBe true
     }
 
+    """is active if
+      |huntingDeadline has not passed
+      |and notification has not been sent yet
+      |and auto booking has not been made
+      |and huntingStartTime is now
+    """.stripMargin in {
+      val ths = TrainingHuntingSubscription(TrainingHuntingSubscriptionId(), 0, 0, OffsetDateTime.now().plusDays(1), huntingStartTime = Some(OffsetDateTime.now()))
+      ths.isActive shouldBe true
+    }
+
     """is not active if
       |huntingStartTime has not passed
     """.stripMargin in {
