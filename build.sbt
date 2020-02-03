@@ -28,5 +28,5 @@ fork in Test := true
 
 version in Docker := "latest"
 dockerExposedPorts := Seq(8080)
-dockerBaseImage := "openjdk:10"
+dockerBaseImage := "openjdk:11-jre-slim"
 dockerExposedVolumes := Seq("/mnt/gymhunter-data")
